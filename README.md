@@ -1,6 +1,8 @@
-# diff2HtmlCompare
+# html_diff
 
-A python script that takes two files and compares the differences between them (side-by-side) in an HTML format. Supports both python2 and python3.
+A python script that produces a diff of two files or directories as a single, self-contained HTML file. The resulting
+diff works without Javascript and will automatically switch between inline and side-by-side formats depending on
+available screen space.
 
 ### Installation
 ```
@@ -9,16 +11,25 @@ pip install -r requirements.txt
 
 ### Usage
 ```
-diff2HtmlCompare.py [-h] [-s] [-v] file1 file2
+usage: html_diff.py [-h] [-b] [-s SYNTAX_CSS] [-t PAGETITLE] [-o OUTPUT] [--header] [--content] old new
+
+Given two source files or directories this applicationcreates an html page which highlights the differences between the two.
 
 positional arguments:
-  file1       file to compare ("before" file).
-  file2       file to compare ("after" file).
+  old                   source file or directory to compare ("before" file)
+  new                   source file or directory to compare ("after" file)
 
-optional arguments:
-  -h, --help  show this help message and exit
-  -s, --show  show html in a browser.
-  -v          show verbose output.
+options:
+  -h, --help            show this help message and exit
+  -b, --open            Open output file in a browser
+  -s SYNTAX_CSS, --syntax-css SYNTAX_CSS
+                        Path to custom Pygments CSS file for code syntax highlighting
+  -t PAGETITLE, --pagetitle PAGETITLE
+                        Override page title of output HTML file
+  -o OUTPUT, --output OUTPUT
+                        Name of output file (default: stdout)
+  --header              Only output HTML header with stylesheets and stuff, and no diff
+  --content             Only output HTML content, without header
 ```
 ### Example Output
 
