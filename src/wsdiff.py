@@ -639,10 +639,8 @@ def html_diff_block(old, new, filename, lexer):
         </div>''')
 
 
-if __name__ == "__main__":
-    description = "Given two source files or directories this application creates an html page that highlights the differences between the two."
-
-    parser = argparse.ArgumentParser(description=description)
+def cli():
+    parser = argparse.ArgumentParser(description="Given two source files or directories this application creates an html page that highlights the differences between the two.")
     parser.add_argument('-b', '--open', action='store_true', help='Open output file in a browser')
     parser.add_argument('-s', '--syntax-css', help='Path to custom Pygments CSS file for code syntax highlighting')
     parser.add_argument('-l', '--lexer', help='Manually select pygments lexer (default: guess from filename, use -L to list available lexers.)')
@@ -740,3 +738,5 @@ if __name__ == "__main__":
     if args.open:
         webbrowser.open('file://' + str(Path(args.output.name).absolute()))
 
+if __name__ == "__main__":
+    cli()

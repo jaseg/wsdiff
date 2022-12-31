@@ -1,0 +1,25 @@
+[project]
+name = "wsdiff"
+version = "0.1.0"
+authors = [{name="jaseg", email="code@jaseg.de"}]
+description = "wsdiff is a tool that produces a syntax-highlighted, self-contained, static HTML file that will show a colored, syntax-highlighted diff of two files or folders without external dependencies or javascript."
+requires-python = ">=3.7"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    ]
+dependencies = ["pygments"]
+    
+[project.urls]
+"Source" = "https://git.jaseg.de/wsdiff.git"
+"Bug Tracker" = "https://github.com/jaseg/wsdiff/issues"
+
+[project.scripts]
+wsdiff = "wsdiff:cli"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
