@@ -1,4 +1,4 @@
-# html_diff
+# wsdiff
 
 A python script that produces a diff of two files or directories as a single, self-contained HTML file. The resulting
 diff works without Javascript and will automatically switch between inline and side-by-side formats depending on
@@ -6,12 +6,12 @@ available screen space.
 
 ### Installation
 ```
-pip install -r requirements.txt
+pip install wsdiff
 ```
 
 ### Usage
 ```
-usage: html_diff.py [-h] [-b] [-s SYNTAX_CSS] [-l LEXER] [-L] [-t PAGETITLE]
+usage: wsdiff [-h] [-b] [-s SYNTAX_CSS] [-l LEXER] [-L] [-t PAGETITLE]
                     [-o OUTPUT] [--header] [--content]
                     [old] [new]
 
