@@ -37,6 +37,7 @@ from itertools import groupby, chain
 import pygments
 from pygments.formatters import HtmlFormatter
 from pygments.lexer import RegexLexer
+from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename, get_all_lexers, LEXERS
 from pygments import token
 
 
@@ -49,172 +50,279 @@ HTML_TEMPLATE = r'''
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="mobile-web-app-capable" content="yes">
-<style>
-html, body {
-    margin: 0;
-    padding: 0;
-}
-
-.file-container {
-    font-family: monospace;
-    font-size: 9pt;
-    border: solid 1px #e0e0e0;
-    margin: 15px;
-}
-
-.file-title {
-    background-color: #f8f8f8;
-    padding: 10px 20px;
-    font-size: 10pt;
-    font-weight: bold;
-    border-bottom: 1px solid #e0e0e0;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-.diff {
-    overflow-x: auto;
-    display: grid;
-}
-
-.line {
-    padding-left: calc(4em + 5px);
-    text-indent: -4em;
-    padding-top: 2px;
-}
-
-.line.left.change, .line.left.insert {
-    background-color: #fbe9eb;
-}
-
-.line.right.change, .line.right.insert {
-    background-color: #ecfdf0;
-}
-
-.lineno.left.change, .lineno.left.insert {
-    background-color: #f9d7dc;
-    color: #ae969a;
-}
-
-.lineno.right.change, .lineno.right.insert {
-    background-color: #ddfbe6;
-    color: #9bb0a1;
-}
-
-.right > .word_change {
-    background-color: #c7f0d2;
-    color: #004000;
-}
-
-.left > .word_change {
-    background-color: #fac5cd;
-    color: #400000;
-}
-
-.lineno {
-    word-break: keep-all;
-    margin: 0;
-    padding-left: 1em;
-    padding-right: 5px;
-    overflow: clip;
-    position: relative;
-    text-align: right;
-    color: #a0a0a0;
-    background-color: #f8f8f8;
-    border-right: 1px solid #e0e0e0;
-}
-
-.lineno.change, .lineno.insert {
-    color: #000000;
-}
-
-.lineno::before {
-    position: absolute;
-    right: 0;
-    content: "\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳";
-    white-space: pre;
-    color: #a0a0a0;
-}
-
-/* Unified diff for narrow screens (phones) */
-@media screen and (max-width: 70em) {
-    .diff {
-        grid-auto-flow: dense;
-        grid-template-columns: min-content min-content 1fr;
+<style id="main-style">
+@layer base-style {
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
     }
 
-    .lineno.left {
-        grid-column: 1;
-    }
-
-    .lineno.left.change {
-        grid-column: 1 / span 2;
-    }
-
-    .lineno.left.insert {
-        grid-column: 1;
-    }
-
-    .lineno.right {
-        grid-column: 2;
-    }
-
-    .lineno.right.change {
-        grid-column: 1 / span 2;
-    }
-
-    .lineno.right.insert {
-        grid-column: 2;
-    }
-
-    .line.left, .line.right.empty {
+    #js-controls {
         display: none;
+        background-color: #f8f8f8;
+        padding: 5px 20px;
+        font-size: 10pt;
+        font-weight: bold;
+        border: 1px solid #e0e0e0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        flex-direction: row-reverse;
+    }
+
+    @media screen and (max-width: 40em) {
+        #js-controls {
+            position: initial;
+        }
+
+        .diff {
+            border-top: none;
+        }
+
+        .file-title {
+            background-color: #f8f8f8;
+            border-bottom: solid 1px #e0e0e0;
+        }
+    }
+
+    input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    input, label, .control-label {
+        vertical-align: middle;
+    }
+
+    .field-group {
+        display: inline-block;
+    }
+
+    .field {
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    label {
+        font-weight: normal;
+        margin-right: .5em;
+        margin-left: 5px;
+    }
+
+    .control-label {
+        margin-right: .5em;
+        margin-left: 5px;
+        padding-bottom: 3px;
+    }
+
+    .file-container {
+        font-family: monospace;
+        font-size: 9pt;
+        background-color: #f8f8f8;
+        border: solid 1px #e0e0e0;
+        margin: 15px;
+    }
+
+    .file-title {
+        padding: 10px 20px;
+        font-size: 10pt;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+    }
+    
+    .filename {
+        max-width: 30em;
+        text-overflow: ellipsis clip;
+        overflow: hidden;
+        white-space: nowrap;
+        direction: rtl;
+    }
+
+    .diff {
+        overflow-x: auto;
+        display: grid;
+        align-items: start;
+        border-top: 1px solid #e0e0e0;
     }
 
     .line {
-        grid-column: 3;
+        padding-left: calc(4em + 5px);
+        text-indent: -4em;
+        padding-top: 2px;
     }
 
-    .line.left.insert {
-        display: block;
+    /* Make individual syntax tokens wrap anywhere */
+    .line > span {
+        overflow-wrap: anywhere;
     }
 
-    .line.left.change {
-        display: block;
+    .line { 
+        min-width: 15em;
     }
 
-    .lineno.right.empty {
+    .line.left.change, .line.left.insert {
+        background-color: #fbe9eb;
+    }
+
+    .line.right.change, .line.right.insert {
+        background-color: #ecfdf0;
+    }
+
+    .lineno.left.change, .lineno.left.insert {
         background-color: #f9d7dc;
+        color: #ae969a;
     }
 
-    .lineno.left.empty {
+    .lineno.right.change, .lineno.right.insert {
         background-color: #ddfbe6;
+        color: #9bb0a1;
     }
 
-    /* line continuation arrows only in right line number column */
-    .lineno.left::before {
-        content: "";
+    .right > .word_change {
+        background-color: #c7f0d2;
+        color: #004000;
     }
-}
 
-/* Split diff for wide screens (laptops) */
-@media screen and not (max-width: 70em) {
+    .left > .word_change {
+        background-color: #fac5cd;
+        color: #400000;
+    }
+
+    .lineno {
+        word-break: keep-all;
+        margin: 0;
+        padding-left: 30px;
+        padding-right: 5px;
+        overflow: clip;
+        position: relative;
+        text-align: right;
+        color: #a0a0a0;
+        background-color: #f8f8f8;
+        border-right: 1px solid #e0e0e0;
+        align-self: stretch;
+    }
+
+    .lineno.change, .lineno.insert {
+        color: #000000;
+    }
+
+    .lineno::after {
+        position: absolute;
+        right: 0;
+        content: "\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳";
+        white-space: pre;
+        color: #a0a0a0;
+    }
+
+    /* Default rules for split diff for wide screens (laptops) */
     .diff {
         grid-template-columns: min-content 1fr min-content 1fr;
     }
 
     .empty {
         background-color: #f0f0f0;
+        align-self: stretch;
     }
 
     /* line continuation arrows only in non-empty lines */
-    .lineno.empty::before {
+    .lineno.empty::after {
         content: "";
     }
+}
 
-    .lineno {
-        padding-left: 30px;
+@layer automatic-media-rule {
+    /* Unified diff for narrow screens (phones) */
+    @media screen and (max-width: 70em) {
+        .diff {
+            grid-auto-flow: dense;
+            grid-template-columns: min-content min-content 1fr;
+        }
+
+        .lineno {
+            padding-left: 1em;
+        }
+
+        .lineno.left {
+            grid-column: 1;
+        }
+
+        .lineno.left.change, .lineno.right.change {
+            grid-column: 1 / span 2;
+            display: grid;
+            grid-template-columns: subgrid;
+            grid-auto-flow: dense;
+            /* To make alignment of left line number work, since we loose margin and padding control using ::before. */
+            column-gap: 10px;
+        }
+
+        .lineno.right.change::before {
+            content: "";
+            align-self: stretch;
+            grid-column: 1;
+            border-right: 1px solid #e0e0e0;
+            margin-right: -5px;
+        }
+
+        .lineno.left.change::before {
+            content: "";
+            align-self: stretch;
+            grid-column: 2;
+            border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
+            margin-left: calc(-5px - 1px); /* move border into column gap, and 1px over to align with other borders */
+        }
+        
+        .lineno.left.insert {
+            border-right: 1px solid #e0c8c8;
+        }
+
+        .lineno.right.change::after {
+            grid-column: 2;
+        }
+
+        .lineno.left.insert {
+            grid-column: 1;
+        }
+
+        .lineno.right {
+            grid-column: 2;
+        }
+
+        .lineno.right.insert {
+            grid-column: 2;
+        }
+
+        .line.left, .line.right.empty {
+            display: none;
+        }
+
+        .line {
+            grid-column: 3;
+        }
+
+        .line.left.insert {
+            display: block;
+        }
+
+        .line.left.change {
+            display: block;
+        }
+
+        .lineno.right.empty {
+            background-color: #f9d7dc;
+        }
+
+        .lineno.left.empty {
+            background-color: #ddfbe6;
+        }
+
+        /* line continuation arrows only in right line number column */
+        .lineno.left:not(.change)::after {
+            content: "";
+        }
     }
 }
 </style>
@@ -223,7 +331,74 @@ $pygments_css
 </style>
     </head>
     <body>
+    <div id="js-controls">
+        <div class="single-control">
+            <span class="control-label">Split view</span>
+            <span class="three-way-toggle">
+                <div class="field-group">
+                    <div class="field"><input type="checkbox" id="toggle-split-auto" checked></input><label for="toggle-split-auto">Auto</label></div>
+                    <div class="field"><input type="checkbox" id="toggle-split-force" disabled></input><label for="toggle-split-force">Split view</label></div>
+                </div>
+            </span>
+        </div>
+    </div>
+    <script>
+        const findStylesheet = (id => Array.from(document.styleSheets).find(element => element.ownerNode && element.ownerNode.id == id));
+        const findRule = ((stylesheet, name) => Array.from(stylesheet.cssRules).find(
+                        element => (element instanceof CSSLayerBlockRule && element.name == name)).cssRules[0]);
+
+        const automaticMediaElement = findRule(findStylesheet('main-style'), 'automatic-media-rule');
+        const automaticMediaRule = automaticMediaElement.media[0];
+        const impossibleMediaRule = "screen and (max-width: 0px)";
+        const tautologicalMediaRule = "screen and (min-width: 0px)";
+
+        const toggleAuto = document.getElementById("toggle-split-auto");
+        const toggleForce = document.getElementById("toggle-split-force");
+        toggleAuto.checked = true;
+        toggleForce.disabled = true;
+
+        toggleAuto.addEventListener('change', (event) => {
+            const automatic = toggleAuto.checked;
+            toggleForce.disabled = automatic;
+            if (automatic) {
+                automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+                automaticMediaElement.media.appendMedium(automaticMediaRule);
+            } else {
+                automaticMediaElement.media.deleteMedium(automaticMediaRule);
+                if (toggleForce.checked) {
+                    automaticMediaElement.media.appendMedium(impossibleMediaRule);
+                } else {
+                    automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+                }
+            }
+        });
+
+        toggleForce.addEventListener('change', (event) => {
+            const automatic = toggleAuto.checked;
+            if (!automatic) {
+                automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+                if (toggleForce.checked) {
+                    automaticMediaElement.media.appendMedium(impossibleMediaRule);
+                } else {
+                    automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+                }
+            }
+        });
+
+        const mediaMatch = window.matchMedia(automaticMediaRule);
+        mediaMatch.addEventListener('change', (event) => {
+            const automatic = toggleAuto.checked;
+            if (automatic) {
+                toggleForce.checked = !event.matches;
+            }
+        });
+        toggleForce.checked = !mediaMatch.matches;
+
+        document.getElementById('js-controls').style = 'display: flex';
+    </script>
+    <div class="diff-files">
 $body
+    </div>
     </body>
 </html>
 '''
@@ -347,6 +522,8 @@ from functools import lru_cache
 @lru_cache(maxsize=256)
 def get_token_class(ttype):
     while not (name := STANDARD_TYPES.get(ttype)): 
+        if ttype is token.Token:
+            return 'n'
         ttype = ttype.parent
     return name
 
@@ -426,21 +603,21 @@ class RecordFormatter(Formatter):
             self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
             assert change and lineno_theirs
 
-def html_diff_content(old, new):
+def html_diff_content(old, new, lexer):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
 
     fmt_l = RecordFormatter('left', diff)
-    pygments.highlight(old, SexprLexer(), fmt_l)
+    pygments.highlight(old, lexer, fmt_l)
 
     fmt_r = RecordFormatter('right', diff)
-    pygments.highlight(new, SexprLexer(), fmt_r)
+    pygments.highlight(new, lexer, fmt_r)
 
     return '\n'.join(chain.from_iterable(zip(fmt_l.lines, fmt_r.lines)))
 
-def html_diff_block(old, new, filename):
-    code = html_diff_content(old, new)
+def html_diff_block(old, new, filename, lexer):
+    code = html_diff_content(old, new, lexer)
     return textwrap.dedent(f'''<div class="file-container">
-            <div class="file-title">{filename}</div>
+            <div class="file-title"><div class="filename">{filename}</div></div>
             <div class="diff">
                 {code}
             </div>
@@ -454,30 +631,42 @@ creates an html page which highlights the differences between the two. """
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-b', '--open', action='store_true', help='Open output file in a browser')
     parser.add_argument('-s', '--syntax-css', help='Path to custom Pygments CSS file for code syntax highlighting')
+    parser.add_argument('-l', '--lexer', help='Manually select pygments lexer (default: guess from filename, use -L to list available lexers.)')
+    parser.add_argument('-L', '--list-lexers', action='store_true', help='List available lexers for -l/--lexer')
     parser.add_argument('-t', '--pagetitle', help='Override page title of output HTML file')
     parser.add_argument('-o', '--output', default=sys.stdout, type=argparse.FileType('w'), help='Name of output file (default: stdout)')
     parser.add_argument('--header', action='store_true', help='Only output HTML header with stylesheets and stuff, and no diff')
     parser.add_argument('--content', action='store_true', help='Only output HTML content, without header')
-    parser.add_argument('old', help='source file or directory to compare ("before" file)')
-    parser.add_argument('new', help='source file or directory to compare ("after" file)')
+    parser.add_argument('old', nargs='?', help='source file or directory to compare ("before" file)')
+    parser.add_argument('new', nargs='?', help='source file or directory to compare ("after" file)')
     args = parser.parse_args()
 
+    if args.list_lexers:
+        for longname, aliases, filename_patterns, _mimetypes in get_all_lexers():
+            print(f'{longname:<20} alias {"/".join(aliases)} for {", ".join(filename_patterns)}')
+        sys.exit(0)
+
+    if not (args.old and args.new):
+        print('Error: The command line arguments "old" and "new" are required.', file=sys.stderr)
+        parser.print_usage()
+        sys.exit(2)
+
     if args.open and args.output == sys.stdout:
-        print('Error: --open requires --output to be given.')
+        print('Error: --open requires --output to be given.', file=sys.stderr)
         parser.print_usage()
         sys.exit(2)
 
     old, new = Path(args.old), Path(args.new)
     if not old.exists():
-        print(f'Error: Path "{old}" does not exist.')
+        print(f'Error: Path "{old}" does not exist.', file=sys.stderr)
         sys.exit(1)
 
     if not new.exists():
-        print(f'Error: Path "{new}" does not exist.')
+        print(f'Error: Path "{new}" does not exist.', file=sys.stderr)
         sys.exit(1)
 
     if old.is_file() != new.is_file():
-        print(f'Error: You must give either two files, or two paths to compare, not a mix of both.')
+        print(f'Error: You must give either two files, or two paths to compare, not a mix of both.', file=sys.stderr)
         sys.exit(1)
 
     if old.is_file():
@@ -497,10 +686,22 @@ creates an html page which highlights the differences between the two. """
 
     diff_blocks = []
     for suffix, (old, new) in sorted(found_files.items()):
-        old = '' if old is None else old.read_text()
-        new = '' if new is None else new.read_text()
+        old_text = '' if old is None else old.read_text()
+        new_text = '' if new is None else new.read_text()
 
-        diff_blocks.append(html_diff_block(old, new, suffix))
+        if args.lexer:
+            lexer = get_lexer_by_name(lexer)
+        else:
+            if new.suffix.lower() in ('.kicad_mod', '.kicad_mod', '.kicad_pcb', '.kicad_sch')\
+                    or new.name == 'sym_lib_table':
+                lexer = SexprLexer()
+            else:
+                try:
+                    lexer = guess_lexer_for_filename(new, new_text)
+                except:
+                    lexer = get_lexer_by_name('text')
+
+        diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer))
 
     print(string.Template(HTML_TEMPLATE).substitute(
         title=pagetitle,
