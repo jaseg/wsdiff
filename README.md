@@ -11,9 +11,12 @@ pip install -r requirements.txt
 
 ### Usage
 ```
-usage: html_diff.py [-h] [-b] [-s SYNTAX_CSS] [-t PAGETITLE] [-o OUTPUT] [--header] [--content] old new
+usage: html_diff.py [-h] [-b] [-s SYNTAX_CSS] [-l LEXER] [-L] [-t PAGETITLE]
+                    [-o OUTPUT] [--header] [--content]
+                    [old] [new]
 
-Given two source files or directories this applicationcreates an html page which highlights the differences between the two.
+Given two source files or directories this application creates an html page
+that highlights the differences between the two.
 
 positional arguments:
   old                   source file or directory to compare ("before" file)
@@ -23,12 +26,18 @@ options:
   -h, --help            show this help message and exit
   -b, --open            Open output file in a browser
   -s SYNTAX_CSS, --syntax-css SYNTAX_CSS
-                        Path to custom Pygments CSS file for code syntax highlighting
+                        Path to custom Pygments CSS file for code syntax
+                        highlighting
+  -l LEXER, --lexer LEXER
+                        Manually select pygments lexer (default: guess from
+                        filename, use -L to list available lexers.)
+  -L, --list-lexers     List available lexers for -l/--lexer
   -t PAGETITLE, --pagetitle PAGETITLE
                         Override page title of output HTML file
   -o OUTPUT, --output OUTPUT
                         Name of output file (default: stdout)
-  --header              Only output HTML header with stylesheets and stuff, and no diff
+  --header              Only output HTML header with stylesheets and stuff,
+                        and no diff
   --content             Only output HTML content, without header
 ```
 ### Example Output

@@ -640,8 +640,7 @@ def html_diff_block(old, new, filename, lexer):
 
 
 if __name__ == "__main__":
-    description = """Given two source files or directories this application\
-creates an html page which highlights the differences between the two. """
+    description = "Given two source files or directories this application creates an html page that highlights the differences between the two."
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-b', '--open', action='store_true', help='Open output file in a browser')
