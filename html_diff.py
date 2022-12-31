@@ -136,7 +136,7 @@ HTML_TEMPLATE = r'''
     
     .filename {
         max-width: 30em;
-        text-overflow: ellipsis clip;
+        text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
         direction: rtl;
@@ -254,7 +254,9 @@ HTML_TEMPLATE = r'''
         .lineno.left.change, .lineno.right.change {
             grid-column: 1 / span 2;
             display: grid;
-            grid-template-columns: subgrid;
+            grid-template-columns: 1fr 1fr;
+            padding-left: 0;
+            padding-right: 0;
             grid-auto-flow: dense;
             /* To make alignment of left line number work, since we loose margin and padding control using ::before. */
             column-gap: 10px;
@@ -265,7 +267,7 @@ HTML_TEMPLATE = r'''
             align-self: stretch;
             grid-column: 1;
             border-right: 1px solid #e0e0e0;
-            margin-right: -5px;
+            margin-right: -6px; /* move border into column gap, and 1px over to align with other borders */
         }
 
         .lineno.left.change::before {
@@ -273,7 +275,7 @@ HTML_TEMPLATE = r'''
             align-self: stretch;
             grid-column: 2;
             border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
-            margin-left: calc(-5px - 1px); /* move border into column gap, and 1px over to align with other borders */
+            margin-left: -5px;
         }
         
         .lineno.left.insert {
@@ -618,7 +620,7 @@ def html_diff_content(old, new, lexer):
 def html_diff_block(old, new, filename, lexer):
     code = html_diff_content(old, new, lexer)
     return textwrap.dedent(f'''<div class="file-container">
-            <div class="file-title"><div class="filename">{filename}</div></div>
+            <div class="file-title"><div class="filename">&#x202D;{filename}</div></div>
             <div class="diff">
                 {code}
             </div>
@@ -645,6 +647,23 @@ creates an html page which highlights the differences between the two. """
     if args.list_lexers:
         for longname, aliases, filename_patterns, _mimetypes in get_all_lexers():
             print(f'{longname:<20} alias {"/".join(aliases)} for {", ".join(filename_patterns)}')
+        sys.exit(0)
+
+    if args.pagetitle or (args.old and args.new):
+        pagetitle = args.pagetitle or f'diff: {args.old} / {args.new}'
+    else:
+        pagetitle = 'diff'
+
+    if args.syntax_css:
+        syntax_css = Path(args.syntax_css).read_text()
+    else:
+        syntax_css = PYGMENTS_CSS
+
+    if args.header:
+        print(string.Template(HTML_TEMPLATE).substitute(
+            title=pagetitle,
+            pygments_css=syntax_css,
+            body='$body'), file=args.output)
         sys.exit(0)
 
     if not (args.old and args.new):
@@ -679,12 +698,6 @@ creates an html page which highlights the differences between the two. """
         for fn in new.glob('**/*'):
             found_files[str(fn.relative_to(new))][1] = fn
 
-    pagetitle = args.pagetitle or f'diff: {old} / {new}'
-    if args.syntax_css:
-        syntax_css = Path(args.syntax_css).read_text()
-    else:
-        syntax_css = PYGMENTS_CSS
-
     diff_blocks = []
     for suffix, (old, new) in sorted(found_files.items()):
         old_text = '' if old is None else old.read_text()
@@ -703,11 +716,15 @@ creates an html page which highlights the differences between the two. """
                     lexer = get_lexer_by_name('text')
 
         diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer))
+    body = '\n'.join(diff_blocks)
 
-    print(string.Template(HTML_TEMPLATE).substitute(
-        title=pagetitle,
-        pygments_css=syntax_css,
-        body='\n'.join(diff_blocks)), file=args.output)
+    if args.content:
+        print(body, file=args.output)
+    else:
+        print(string.Template(HTML_TEMPLATE).substitute(
+            title=pagetitle,
+            pygments_css=syntax_css,
+            body=body), file=args.output)
 
     if args.open:
         webbrowser.open('file://' + str(Path(args.output.name).absolute()))
