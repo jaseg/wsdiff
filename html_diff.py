@@ -287,7 +287,13 @@ HTML_TEMPLATE = r'''
         }
 
         .lineno.left.insert {
-            grid-column: 1;
+            grid-column: 1 / span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-flow: dense;
+            column-gap: 10px;
+            padding-left: 0;
+            padding-right: 0;
         }
 
         .lineno.right {
@@ -315,7 +321,7 @@ HTML_TEMPLATE = r'''
         }
 
         .lineno.right.empty {
-            background-color: #f9d7dc;
+            display: none;
         }
 
         .lineno.left.empty {
@@ -323,8 +329,14 @@ HTML_TEMPLATE = r'''
         }
 
         /* line continuation arrows only in right line number column */
-        .lineno.left:not(.change)::after {
+        .lineno.left.insert::after {
+        }
+
+        .lineno.left.insert::before {
             content: "";
+            grid-column: 2;
+            border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
+            margin-left: -5px;
         }
     }
 }
