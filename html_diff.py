@@ -158,6 +158,7 @@ HTML_TEMPLATE = r'''
     /* Make individual syntax tokens wrap anywhere */
     .line > span {
         overflow-wrap: anywhere;
+        white-space: pre-wrap;
     }
 
     .line { 
