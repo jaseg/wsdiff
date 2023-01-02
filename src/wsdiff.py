@@ -616,7 +616,7 @@ class RecordFormatter(Formatter):
 
         for _ours_empty, (lineno_theirs, _diff_theirs), change in diff:
             self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
-            assert change and lineno_theirs
+            #assert change and lineno_theirs
 
 def html_diff_content(old, new, lexer):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
@@ -629,10 +629,13 @@ def html_diff_content(old, new, lexer):
 
     return '\n'.join(chain.from_iterable(zip(fmt_l.lines, fmt_r.lines)))
 
-def html_diff_block(old, new, filename, lexer):
+def html_diff_block(old, new, filename, lexer, hide_filename=True):
     code = html_diff_content(old, new, lexer)
+    filename = f'<div class="file-title"><div class="filename">&#x202D;{filename}</div></div>'
+    if hide_filename:
+        filename = ''
     return textwrap.dedent(f'''<div class="file-container">
-            <div class="file-title"><div class="filename">&#x202D;{filename}</div></div>
+            {filename}
             <div class="diff">
                 {code}
             </div>
@@ -649,6 +652,7 @@ def cli():
     parser.add_argument('-o', '--output', default=sys.stdout, type=argparse.FileType('w'), help='Name of output file (default: stdout)')
     parser.add_argument('--header', action='store_true', help='Only output HTML header with stylesheets and stuff, and no diff')
     parser.add_argument('--content', action='store_true', help='Only output HTML content, without header')
+    parser.add_argument('--nofilename', action='store_true', help='Do not output file name headers')
     parser.add_argument('old', nargs='?', help='source file or directory to compare ("before" file)')
     parser.add_argument('new', nargs='?', help='source file or directory to compare ("after" file)')
     args = parser.parse_args()
@@ -724,7 +728,7 @@ def cli():
                 except:
                     lexer = get_lexer_by_name('text')
 
-        diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer))
+        diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer, hide_filename=args.nofilename))
     body = '\n'.join(diff_blocks)
 
     if args.content:
