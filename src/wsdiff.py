@@ -40,17 +40,21 @@ from pygments.lexer import RegexLexer
 from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename, get_all_lexers, LEXERS
 from pygments import token
 
+DIFF_STYLE_TOGGLE = r'''
+    <div id="js-controls">
+        <div class="single-control">
+            <span class="control-label">Split view</span>
+            <span class="three-way-toggle">
+                <div class="field-group">
+                    <div class="field"><input type="checkbox" id="toggle-split-auto" checked></input><label for="toggle-split-auto">Auto</label></div>
+                    <div class="field"><input type="checkbox" id="toggle-split-force" disabled></input><label for="toggle-split-force">Split view</label></div>
+                </div>
+            </span>
+        </div>
+    </div>
+'''
 
-HTML_TEMPLATE = r'''
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>$title</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="mobile-web-app-capable" content="yes">
-<style id="main-style">
+MAIN_CSS = r'''
 @layer base-style {
     html, body {
         margin: 0;
@@ -340,80 +344,87 @@ HTML_TEMPLATE = r'''
         }
     }
 }
-</style>
-<style>
-$pygments_css
-</style>
+'''
+
+DIFF_STYLE_SCRIPT = r'''
+    const findStylesheet = (id => Array.from(document.styleSheets).find(element => element.ownerNode && element.ownerNode.id == id));
+    const findRule = ((stylesheet, name) => Array.from(stylesheet.cssRules).find(
+                    element => (element instanceof CSSLayerBlockRule && element.name == name)).cssRules[0]);
+
+    const automaticMediaElement = findRule(findStylesheet('main-style'), 'automatic-media-rule');
+    const automaticMediaRule = automaticMediaElement.media[0];
+    const impossibleMediaRule = "screen and (max-width: 0px)";
+    const tautologicalMediaRule = "screen and (min-width: 0px)";
+
+    const toggleAuto = document.getElementById("toggle-split-auto");
+    const toggleForce = document.getElementById("toggle-split-force");
+    toggleAuto.checked = true;
+    toggleForce.disabled = true;
+
+    toggleAuto.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        toggleForce.disabled = automatic;
+        if (automatic) {
+            automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+            automaticMediaElement.media.appendMedium(automaticMediaRule);
+        } else {
+            automaticMediaElement.media.deleteMedium(automaticMediaRule);
+            if (toggleForce.checked) {
+                automaticMediaElement.media.appendMedium(impossibleMediaRule);
+            } else {
+                automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+            }
+        }
+    });
+
+    toggleForce.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        if (!automatic) {
+            automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+            if (toggleForce.checked) {
+                automaticMediaElement.media.appendMedium(impossibleMediaRule);
+            } else {
+                automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+            }
+        }
+    });
+
+    const mediaMatch = window.matchMedia(automaticMediaRule);
+    mediaMatch.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        if (automatic) {
+            toggleForce.checked = !event.matches;
+        }
+    });
+    toggleForce.checked = !mediaMatch.matches;
+
+    document.getElementById('js-controls').style = 'display: flex';
+'''
+
+HTML_TEMPLATE = r'''
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>$title</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="mobile-web-app-capable" content="yes">
+        <style id="main-style">
+            $main_css
+        </style>
+        <style>
+            $pygments_css
+        </style>
     </head>
     <body>
-    <div id="js-controls">
-        <div class="single-control">
-            <span class="control-label">Split view</span>
-            <span class="three-way-toggle">
-                <div class="field-group">
-                    <div class="field"><input type="checkbox" id="toggle-split-auto" checked></input><label for="toggle-split-auto">Auto</label></div>
-                    <div class="field"><input type="checkbox" id="toggle-split-force" disabled></input><label for="toggle-split-force">Split view</label></div>
-                </div>
-            </span>
+        $diff_style_toggle
+        <script>
+            $diff_style_script
+        </script>
+        <div class="diff-files">
+            $body
         </div>
-    </div>
-    <script>
-        const findStylesheet = (id => Array.from(document.styleSheets).find(element => element.ownerNode && element.ownerNode.id == id));
-        const findRule = ((stylesheet, name) => Array.from(stylesheet.cssRules).find(
-                        element => (element instanceof CSSLayerBlockRule && element.name == name)).cssRules[0]);
-
-        const automaticMediaElement = findRule(findStylesheet('main-style'), 'automatic-media-rule');
-        const automaticMediaRule = automaticMediaElement.media[0];
-        const impossibleMediaRule = "screen and (max-width: 0px)";
-        const tautologicalMediaRule = "screen and (min-width: 0px)";
-
-        const toggleAuto = document.getElementById("toggle-split-auto");
-        const toggleForce = document.getElementById("toggle-split-force");
-        toggleAuto.checked = true;
-        toggleForce.disabled = true;
-
-        toggleAuto.addEventListener('change', (event) => {
-            const automatic = toggleAuto.checked;
-            toggleForce.disabled = automatic;
-            if (automatic) {
-                automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
-                automaticMediaElement.media.appendMedium(automaticMediaRule);
-            } else {
-                automaticMediaElement.media.deleteMedium(automaticMediaRule);
-                if (toggleForce.checked) {
-                    automaticMediaElement.media.appendMedium(impossibleMediaRule);
-                } else {
-                    automaticMediaElement.media.appendMedium(tautologicalMediaRule);
-                }
-            }
-        });
-
-        toggleForce.addEventListener('change', (event) => {
-            const automatic = toggleAuto.checked;
-            if (!automatic) {
-                automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
-                if (toggleForce.checked) {
-                    automaticMediaElement.media.appendMedium(impossibleMediaRule);
-                } else {
-                    automaticMediaElement.media.appendMedium(tautologicalMediaRule);
-                }
-            }
-        });
-
-        const mediaMatch = window.matchMedia(automaticMediaRule);
-        mediaMatch.addEventListener('change', (event) => {
-            const automatic = toggleAuto.checked;
-            if (automatic) {
-                toggleForce.checked = !event.matches;
-            }
-        });
-        toggleForce.checked = !mediaMatch.matches;
-
-        document.getElementById('js-controls').style = 'display: flex';
-    </script>
-    <div class="diff-files">
-$body
-    </div>
     </body>
 </html>
 '''
@@ -512,22 +523,6 @@ span.clearbg {
   background-color: transparent;
 }
 '''
-
-class SexprLexer(RegexLexer):
-    name = 'KiCad S-Expression'
-    aliases = ['sexp']
-    filenames = ['*.kicad_mod', '*.kicad_sym']
-
-    tokens = {
-        'root': [
-            (r'\s+', token.Whitespace),
-            (r'[()]', token.Punctuation),
-            (r'([+-]?\d+\.\d+)(?=[)\s])', token.Number),
-            (r'(-?\d+)(?=[)\s])', token.Number),
-            (r'"((?:[^"]|\\")*)"(?=[)\s])', token.String),
-            (r'([^()"\s]+)(?=[)\s])', token.Name),
-        ]
-    }
 
 from pygments.formatter import Formatter
 from pygments.token import STANDARD_TYPES
@@ -674,6 +669,9 @@ def cli():
         print(string.Template(HTML_TEMPLATE).substitute(
             title=pagetitle,
             pygments_css=syntax_css,
+            main_css=MAIN_CSS,
+            diff_style_toggle=DIFF_STYLE_TOGGLE,
+            diff_style_script=DIFF_STYLE_SCRIPT,
             body='$body'), file=args.output)
         sys.exit(0)
 
@@ -717,14 +715,10 @@ def cli():
         if args.lexer:
             lexer = get_lexer_by_name(lexer)
         else:
-            if new.suffix.lower() in ('.kicad_mod', '.kicad_mod', '.kicad_pcb', '.kicad_sch')\
-                    or new.name == 'sym_lib_table':
-                lexer = SexprLexer()
-            else:
-                try:
-                    lexer = guess_lexer_for_filename(new, new_text)
-                except:
-                    lexer = get_lexer_by_name('text')
+            try:
+                lexer = guess_lexer_for_filename(new, new_text)
+            except:
+                lexer = get_lexer_by_name('text')
 
         diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer, hide_filename=args.nofilename))
     body = '\n'.join(diff_blocks)
@@ -735,6 +729,9 @@ def cli():
         print(string.Template(HTML_TEMPLATE).substitute(
             title=pagetitle,
             pygments_css=syntax_css,
+            main_css=MAIN_CSS,
+            diff_style_toggle=DIFF_STYLE_TOGGLE,
+            diff_style_script=DIFF_STYLE_SCRIPT,
             body=body), file=args.output)
 
     if args.open:
