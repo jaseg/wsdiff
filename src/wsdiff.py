@@ -41,13 +41,13 @@ from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename, get_all
 from pygments import token
 
 DIFF_STYLE_TOGGLE = r'''
-    <div id="js-controls">
-        <div class="single-control">
-            <span class="control-label">Split view</span>
-            <span class="three-way-toggle">
-                <div class="field-group">
-                    <div class="field"><input type="checkbox" id="toggle-split-auto" checked></input><label for="toggle-split-auto">Auto</label></div>
-                    <div class="field"><input type="checkbox" id="toggle-split-force" disabled></input><label for="toggle-split-force">Split view</label></div>
+    <div id="wsd-js-controls">
+        <div class="wsd-single-control">
+            <span class="wsd-control-label">Split view</span>
+            <span class="wsd-three-way-toggle">
+                <div class="wsd-field-group">
+                    <div class="wsd-field"><input type="checkbox" id="wsd-toggle-split-auto" checked></input><label for="wsd-toggle-split-auto">Auto</label></div>
+                    <div class="wsd-field"><input type="checkbox" id="wsd-toggle-split-force" disabled></input><label for="wsd-toggle-split-force">Split view</label></div>
                 </div>
             </span>
         </div>
@@ -55,14 +55,8 @@ DIFF_STYLE_TOGGLE = r'''
 '''
 
 MAIN_CSS = r'''
-@layer base-style {
-    html, body {
-        margin: 0;
-        padding: 0;
-        font-family: sans-serif;
-    }
-
-    #js-controls {
+@layer wsd-base-style {
+    #wsd-js-controls {
         display: none;
         background-color: #f8f8f8;
         padding: 5px 20px;
@@ -76,51 +70,51 @@ MAIN_CSS = r'''
     }
 
     @media screen and (max-width: 40em) {
-        #js-controls {
+        #wsd-js-controls {
             position: initial;
         }
 
-        .diff {
+        .wsd-diff {
             border-top: none;
         }
 
-        .file-title {
+        .wsd-file-title {
             background-color: #f8f8f8;
             border-bottom: solid 1px #e0e0e0;
         }
     }
 
-    input[type="checkbox"] {
+    #wsd-js-controls input[type="checkbox"] {
         width: 20px;
         height: 20px;
     }
 
-    input, label, .control-label {
+    #wsd-js-controls input, #wsd-js-controls label, #wsd-js-controls .control-label {
         vertical-align: middle;
     }
 
-    .field-group {
+    .wsd-field-group {
         display: inline-block;
     }
 
-    .field {
+    .wsd-field {
         white-space: nowrap;
         display: inline-block;
     }
 
-    label {
+    #wsd-js-controls label {
         font-weight: normal;
         margin-right: .5em;
         margin-left: 5px;
     }
 
-    .control-label {
+    .wsd-control-label {
         margin-right: .5em;
         margin-left: 5px;
         padding-bottom: 3px;
     }
 
-    .file-container {
+    .wsd-file-container {
         font-family: monospace;
         font-size: 9pt;
         background-color: #f8f8f8;
@@ -128,7 +122,7 @@ MAIN_CSS = r'''
         margin: 15px;
     }
 
-    .file-title {
+    .wsd-file-title {
         padding: 10px 20px;
         font-size: 10pt;
         font-weight: bold;
@@ -138,7 +132,7 @@ MAIN_CSS = r'''
         display: flex;
     }
     
-    .filename {
+    .wsd-filename {
         max-width: 30em;
         text-overflow: ellipsis;
         overflow: hidden;
@@ -146,58 +140,58 @@ MAIN_CSS = r'''
         direction: rtl;
     }
 
-    .diff {
+    .wsd-diff {
         overflow-x: auto;
         display: grid;
         align-items: start;
         border-top: 1px solid #e0e0e0;
     }
 
-    .line {
+    .wsd-line {
         padding-left: calc(4em + 5px);
         text-indent: -4em;
         padding-top: 2px;
     }
 
     /* Make individual syntax tokens wrap anywhere */
-    .line > span {
+    .wsd-line > span {
         overflow-wrap: anywhere;
         white-space: pre-wrap;
     }
 
-    .line { 
+    .wsd-line { 
         min-width: 15em;
     }
 
-    .line.left.change, .line.left.insert {
+    .wsd-line.wsd-left.wsd-change, .wsd-line.wsd-left.wsd-insert {
         background-color: #fbe9eb;
     }
 
-    .line.right.change, .line.right.insert {
+    .wsd-line.wsd-right.wsd-change, .wsd-line.wsd-right.wsd-insert {
         background-color: #ecfdf0;
     }
 
-    .lineno.left.change, .lineno.left.insert {
+    .wsd-lineno.wsd-left.wsd-change, .wsd-lineno.wsd-left.wsd-insert {
         background-color: #f9d7dc;
         color: #ae969a;
     }
 
-    .lineno.right.change, .lineno.right.insert {
+    .wsd-lineno.wsd-right.wsd-change, .wsd-lineno.wsd-right.wsd-insert {
         background-color: #ddfbe6;
         color: #9bb0a1;
     }
 
-    .right > .word_change {
+    .wsd-right > .wsd-word-change {
         background-color: #c7f0d2;
         color: #004000;
     }
 
-    .left > .word_change {
+    .wsd-left > .wsd-word-change {
         background-color: #fac5cd;
         color: #400000;
     }
 
-    .lineno {
+    .wsd-lineno {
         word-break: keep-all;
         margin: 0;
         padding-left: 30px;
@@ -211,11 +205,11 @@ MAIN_CSS = r'''
         align-self: stretch;
     }
 
-    .lineno.change, .lineno.insert {
+    .wsd-lineno.wsd-change, .wsd-lineno.wsd-insert {
         color: #000000;
     }
 
-    .lineno::after {
+    .wsd-lineno::after {
         position: absolute;
         right: 0;
         content: "\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳";
@@ -224,38 +218,38 @@ MAIN_CSS = r'''
     }
 
     /* Default rules for split diff for wide screens (laptops) */
-    .diff {
+    .wsd-diff {
         grid-template-columns: min-content 1fr min-content 1fr;
     }
 
-    .empty {
+    .wsd-empty {
         background-color: #f0f0f0;
         align-self: stretch;
     }
 
     /* line continuation arrows only in non-empty lines */
-    .lineno.empty::after {
+    .wsd-lineno.wsd-empty::after {
         content: "";
     }
 }
 
-@layer automatic-media-rule {
+@layer wsd-automatic-media-rule {
     /* Unified diff for narrow screens (phones) */
     @media screen and (max-width: 70em) {
-        .diff {
+        .wsd-diff {
             grid-auto-flow: dense;
             grid-template-columns: min-content min-content 1fr;
         }
 
-        .lineno {
+        .wsd-lineno {
             padding-left: 1em;
         }
 
-        .lineno.left {
+        .wsd-lineno.wsd-left {
             grid-column: 1;
         }
 
-        .lineno.left.change, .lineno.right.change {
+        .wsd-lineno.wsd-left.wsd-change, .wsd-lineno.wsd-right.wsd-change {
             grid-column: 1 / span 2;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -266,7 +260,7 @@ MAIN_CSS = r'''
             column-gap: 10px;
         }
 
-        .lineno.right.change::before {
+        .wsd-lineno.wsd-right.wsd-change::before {
             content: "";
             align-self: stretch;
             grid-column: 1;
@@ -274,7 +268,7 @@ MAIN_CSS = r'''
             margin-right: -6px; /* move border into column gap, and 1px over to align with other borders */
         }
 
-        .lineno.left.change::before {
+        .wsd-lineno.wsd-left.wsd-change::before {
             content: "";
             align-self: stretch;
             grid-column: 2;
@@ -282,15 +276,15 @@ MAIN_CSS = r'''
             margin-left: -5px;
         }
         
-        .lineno.left.insert {
+        .wsd-lineno.wsd-left.wsd-insert {
             border-right: 1px solid #e0c8c8;
         }
 
-        .lineno.right.change::after {
+        .wsd-lineno.wsd-right.wsd-change::after {
             grid-column: 2;
         }
 
-        .lineno.left.insert {
+        .wsd-lineno.wsd-left.wsd-insert {
             grid-column: 1 / span 2;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -300,43 +294,43 @@ MAIN_CSS = r'''
             padding-right: 0;
         }
 
-        .lineno.right {
+        .wsd-lineno.wsd-right {
             grid-column: 2;
         }
 
-        .lineno.right.insert {
+        .wsd-lineno.wsd-right.wsd-insert {
             grid-column: 2;
         }
 
-        .line.left, .line.right.empty {
+        .wsd-line.wsd-left, .wsd-line.wsd-right.wsd-empty {
             display: none;
         }
 
-        .line {
+        .wsd-line {
             grid-column: 3;
         }
 
-        .line.left.insert {
+        .wsd-line.wsd-left.wsd-insert {
             display: block;
         }
 
-        .line.left.change {
+        .wsd-line.wsd-left.wsd-change {
             display: block;
         }
 
-        .lineno.right.empty {
+        .wsd-lineno.wsd-right.wsd-empty {
             display: none;
         }
 
-        .lineno.left.empty {
+        .wsd-lineno.wsd-left.wsd-empty {
             background-color: #ddfbe6;
         }
 
         /* line continuation arrows only in right line number column */
-        .lineno.left.insert::after {
+        .wsd-lineno.wsd-left.wsd-insert::after {
         }
 
-        .lineno.left.insert::before {
+        .wsd-lineno.wsd-left.wsd-insert::before {
             content: "";
             grid-column: 2;
             border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
@@ -351,13 +345,13 @@ DIFF_STYLE_SCRIPT = r'''
     const findRule = ((stylesheet, name) => Array.from(stylesheet.cssRules).find(
                     element => (element instanceof CSSLayerBlockRule && element.name == name)).cssRules[0]);
 
-    const automaticMediaElement = findRule(findStylesheet('main-style'), 'automatic-media-rule');
+    const automaticMediaElement = findRule(findStylesheet('wsd-main-style'), 'wsd-automatic-media-rule');
     const automaticMediaRule = automaticMediaElement.media[0];
     const impossibleMediaRule = "screen and (max-width: 0px)";
     const tautologicalMediaRule = "screen and (min-width: 0px)";
 
-    const toggleAuto = document.getElementById("toggle-split-auto");
-    const toggleForce = document.getElementById("toggle-split-force");
+    const toggleAuto = document.getElementById("wsd-toggle-split-auto");
+    const toggleForce = document.getElementById("wsd-toggle-split-force");
     toggleAuto.checked = true;
     toggleForce.disabled = true;
 
@@ -398,7 +392,7 @@ DIFF_STYLE_SCRIPT = r'''
     });
     toggleForce.checked = !mediaMatch.matches;
 
-    document.getElementById('js-controls').style = 'display: flex';
+    document.getElementById('wsd-js-controls').style = 'display: flex';
 '''
 
 HTML_TEMPLATE = r'''
@@ -410,7 +404,13 @@ HTML_TEMPLATE = r'''
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="mobile-web-app-capable" content="yes">
-        <style id="main-style">
+        <style id="wsd-main-style">
+            html, body {
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+            }
+
             $main_css
         </style>
         <style>
@@ -422,7 +422,7 @@ HTML_TEMPLATE = r'''
         <script>
             $diff_style_script
         </script>
-        <div class="diff-files">
+        <div class="wsd-diff-files">
             $body
         </div>
     </body>
@@ -430,98 +430,62 @@ HTML_TEMPLATE = r'''
 '''
 
 PYGMENTS_CSS = '''
-body .hll { background-color: #ffffcc }
-body  { background: #ffffff; }
-body .c { color: #177500 } /* Comment */
-body .err { color: #000000 } /* Error */
-body .k { color: #A90D91 } /* Keyword */
-body .l { color: #1C01CE } /* Literal */
-body .n { color: #000000 } /* Name */
-body .o { color: #000000 } /* Operator */
-body .cm { color: #177500 } /* Comment.Multiline */
-body .cp { color: #633820 } /* Comment.Preproc */
-body .c1 { color: #177500 } /* Comment.Single */
-body .cs { color: #177500 } /* Comment.Special */
-body .kc { color: #A90D91 } /* Keyword.Constant */
-body .kd { color: #A90D91 } /* Keyword.Declaration */
-body .kn { color: #A90D91 } /* Keyword.Namespace */
-body .kp { color: #A90D91 } /* Keyword.Pseudo */
-body .kr { color: #A90D91 } /* Keyword.Reserved */
-body .kt { color: #A90D91 } /* Keyword.Type */
-body .ld { color: #1C01CE } /* Literal.Date */
-body .m { color: #1C01CE } /* Literal.Number */
-body .s { color: #C41A16 } /* Literal.String */
-body .na { color: #836C28 } /* Name.Attribute */
-body .nb { color: #A90D91 } /* Name.Builtin */
-body .nc { color: #3F6E75 } /* Name.Class */
-body .no { color: #000000 } /* Name.Constant */
-body .nd { color: #000000 } /* Name.Decorator */
-body .ni { color: #000000 } /* Name.Entity */
-body .ne { color: #000000 } /* Name.Exception */
-body .nf { color: #000000 } /* Name.Function */
-body .nl { color: #000000 } /* Name.Label */
-body .nn { color: #000000 } /* Name.Namespace */
-body .nx { color: #000000 } /* Name.Other */
-body .py { color: #000000 } /* Name.Property */
-body .nt { color: #000000 } /* Name.Tag */
-body .nv { color: #000000 } /* Name.Variable */
-body .ow { color: #000000 } /* Operator.Word */
-body .mb { color: #1C01CE } /* Literal.Number.Bin */
-body .mf { color: #1C01CE } /* Literal.Number.Float */
-body .mh { color: #1C01CE } /* Literal.Number.Hex */
-body .mi { color: #1C01CE } /* Literal.Number.Integer */
-body .mo { color: #1C01CE } /* Literal.Number.Oct */
-body .sb { color: #C41A16 } /* Literal.String.Backtick */
-body .sc { color: #2300CE } /* Literal.String.Char */
-body .sd { color: #C41A16 } /* Literal.String.Doc */
-body .s2 { color: #C41A16 } /* Literal.String.Double */
-body .se { color: #C41A16 } /* Literal.String.Escape */
-body .sh { color: #C41A16 } /* Literal.String.Heredoc */
-body .si { color: #C41A16 } /* Literal.String.Interpol */
-body .sx { color: #C41A16 } /* Literal.String.Other */
-body .sr { color: #C41A16 } /* Literal.String.Regex */
-body .s1 { color: #C41A16 } /* Literal.String.Single */
-body .ss { color: #C41A16 } /* Literal.String.Symbol */
-body .bp { color: #5B269A } /* Name.Builtin.Pseudo */
-body .vc { color: #000000 } /* Name.Variable.Class */
-body .vg { color: #000000 } /* Name.Variable.Global */
-body .vi { color: #000000 } /* Name.Variable.Instance */
-body .il { color: #1C01CE } /* Literal.Number.Integer.Long */
-
-/* 
-These styles are used to highlight each diff line.
-Note: for partial like highlight change to "display:block-inline" 
-*/
-span.left_diff_change {
-  background-color: #FFE5B5;
-  display: block
-}
-span.left_diff_add {
-  background-color: #eeeeee;
-  display: block
-}
-span.left_diff_del {
-  background-color: #ffdddd;
-  display: block
-}
-span.lineno_q {
-  display: block;
-}
-span.right_diff_change {
-  background-color: #FFE5B5;
-  display: block
-}
-span.right_diff_add {
-  background-color: #ddffdd;
-  display: block
-}
-span.right_diff_del {
-  background-color: #eeeeee;
-  display: block
-}
-span.clearbg {
-  background-color: transparent;
-}
+body .wsd-hll { background-color: #ffffcc }
+body .wsd-c { color: #177500 } /* Comment */
+body .wsd-err { color: #000000 } /* Error */
+body .wsd-k { color: #A90D91 } /* Keyword */
+body .wsd-l { color: #1C01CE } /* Literal */
+body .wsd-n { color: #000000 } /* Name */
+body .wsd-o { color: #000000 } /* Operator */
+body .wsd-cm { color: #177500 } /* Comment.Multiline */
+body .wsd-cp { color: #633820 } /* Comment.Preproc */
+body .wsd-c1 { color: #177500 } /* Comment.Single */
+body .wsd-cs { color: #177500 } /* Comment.Special */
+body .wsd-kc { color: #A90D91 } /* Keyword.Constant */
+body .wsd-kd { color: #A90D91 } /* Keyword.Declaration */
+body .wsd-kn { color: #A90D91 } /* Keyword.Namespace */
+body .wsd-kp { color: #A90D91 } /* Keyword.Pseudo */
+body .wsd-kr { color: #A90D91 } /* Keyword.Reserved */
+body .wsd-kt { color: #A90D91 } /* Keyword.Type */
+body .wsd-ld { color: #1C01CE } /* Literal.Date */
+body .wsd-m { color: #1C01CE } /* Literal.Number */
+body .wsd-s { color: #C41A16 } /* Literal.String */
+body .wsd-na { color: #836C28 } /* Name.Attribute */
+body .wsd-nb { color: #A90D91 } /* Name.Builtin */
+body .wsd-nc { color: #3F6E75 } /* Name.Class */
+body .wsd-no { color: #000000 } /* Name.Constant */
+body .wsd-nd { color: #000000 } /* Name.Decorator */
+body .wsd-ni { color: #000000 } /* Name.Entity */
+body .wsd-ne { color: #000000 } /* Name.Exception */
+body .wsd-nf { color: #000000 } /* Name.Function */
+body .wsd-nl { color: #000000 } /* Name.Label */
+body .wsd-nn { color: #000000 } /* Name.Namespace */
+body .wsd-nx { color: #000000 } /* Name.Other */
+body .wsd-py { color: #000000 } /* Name.Property */
+body .wsd-nt { color: #000000 } /* Name.Tag */
+body .wsd-nv { color: #000000 } /* Name.Variable */
+body .wsd-ow { color: #000000 } /* Operator.Word */
+body .wsd-mb { color: #1C01CE } /* Literal.Number.Bin */
+body .wsd-mf { color: #1C01CE } /* Literal.Number.Float */
+body .wsd-mh { color: #1C01CE } /* Literal.Number.Hex */
+body .wsd-mi { color: #1C01CE } /* Literal.Number.Integer */
+body .wsd-mo { color: #1C01CE } /* Literal.Number.Oct */
+body .wsd-sb { color: #C41A16 } /* Literal.String.Backtick */
+body .wsd-sc { color: #2300CE } /* Literal.String.Char */
+body .wsd-sd { color: #C41A16 } /* Literal.String.Doc */
+body .wsd-s2 { color: #C41A16 } /* Literal.String.Double */
+body .wsd-se { color: #C41A16 } /* Literal.String.Escape */
+body .wsd-sh { color: #C41A16 } /* Literal.String.Heredoc */
+body .wsd-si { color: #C41A16 } /* Literal.String.Interpol */
+body .wsd-sx { color: #C41A16 } /* Literal.String.Other */
+body .wsd-sr { color: #C41A16 } /* Literal.String.Regex */
+body .wsd-s1 { color: #C41A16 } /* Literal.String.Single */
+body .wsd-ss { color: #C41A16 } /* Literal.String.Symbol */
+body .wsd-bp { color: #5B269A } /* Name.Builtin.Pseudo */
+body .wsd-vc { color: #000000 } /* Name.Variable.Class */
+body .wsd-vg { color: #000000 } /* Name.Variable.Global */
+body .wsd-vi { color: #000000 } /* Name.Variable.Instance */
+body .wsd-il { color: #1C01CE } /* Literal.Number.Integer.Long */
 '''
 
 from pygments.formatter import Formatter
@@ -535,7 +499,7 @@ def get_token_class(ttype):
         if ttype is token.Token:
             return 'n'
         ttype = ttype.parent
-    return name
+    return f'wsd-{name}'
 
 def iter_token_lines(tokensource):
     lineno = 1
@@ -564,16 +528,16 @@ class RecordFormatter(Formatter):
                 if lineno_ours == lineno:
                     break
                 else:
-                    self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
+                    self.lines.append(f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>')
 
             if not change:
                 change_class = '' 
             elif not lineno_ours or not lineno_theirs:
-                change_class = ' insert'
+                change_class = ' wsd-insert'
             else:
-                change_class = ' change' 
+                change_class = ' wsd-change' 
 
-            line = f'<span class="lineno {self.side}{change_class}">{lineno}</span><span class="line {self.side}{change_class}">'
+            line = f'<span class="wsd-lineno wsd-{self.side}{change_class}">{lineno}</span><span class="wsd-line wsd-{self.side}{change_class}">'
 
             parts = re.split(r'(\00.|\01|$)', diff_ours)
             source_pos = 0
@@ -593,9 +557,9 @@ class RecordFormatter(Formatter):
                     if source_pos <= next_marker_pos < source_pos + len(value):
                         split_pos = next_marker_pos - source_pos
                         left, value = value[:split_pos], value[split_pos:]
-                        line += f'<span class="{css_class}{diff_class}">{html.escape(left)}</span>'
+                        line += f'<span class="wsd-{css_class}{diff_class}">{html.escape(left)}</span>'
                         source_pos += len(left)
-                        diff_class = ' word_change' if next_marker_type.startswith('\0') else ''
+                        diff_class = ' wsd-word-change' if next_marker_type.startswith('\0') else ''
                         diff_markers = diff_markers[1:]
                     else:
                         break
@@ -609,7 +573,7 @@ class RecordFormatter(Formatter):
             self.lines.append(line)
 
         for _ours_empty, (lineno_theirs, _diff_theirs), change in diff:
-            self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
+            self.lines.append(f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>')
 
 def html_diff_content(old, new, lexer):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
@@ -624,12 +588,12 @@ def html_diff_content(old, new, lexer):
 
 def html_diff_block(old, new, filename, lexer, hide_filename=True):
     code = html_diff_content(old, new, lexer)
-    filename = f'<div class="file-title"><div class="filename">&#x202D;{filename}</div></div>'
+    filename = f'<div class="wsd-file-title"><div class="wsd-filename">&#x202D;{filename}</div></div>'
     if hide_filename:
         filename = ''
-    return textwrap.dedent(f'''<div class="file-container">
+    return textwrap.dedent(f'''<div class="wsd-file-container">
             {filename}
-            <div class="diff">
+            <div class="wsd-diff">
                 {code}
             </div>
         </div>''')
