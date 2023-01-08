@@ -570,7 +570,6 @@ class RecordFormatter(Formatter):
                     break
                 else:
                     self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
-            assert lineno_ours == lineno
 
             if not change:
                 change_class = '' 
@@ -616,7 +615,6 @@ class RecordFormatter(Formatter):
 
         for _ours_empty, (lineno_theirs, _diff_theirs), change in diff:
             self.lines.append(f'<span class="lineno {self.side} empty"></span><span class="line {self.side} empty"></span>')
-            #assert change and lineno_theirs
 
 def html_diff_content(old, new, lexer):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
