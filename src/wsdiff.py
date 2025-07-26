@@ -231,6 +231,10 @@ MAIN_CSS = r'''
     .wsd-lineno.wsd-empty::after {
         content: "";
     }
+
+    .wsd-lineno, .wsd-left {
+        user-select: none;
+    }
 }
 
 @layer wsd-automatic-media-rule {
