@@ -610,7 +610,7 @@ class RecordFormatter(Formatter):
         for _ours_empty, (lineno_theirs, _diff_theirs), change in diff:
             self.lines.append((True, f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>'))
 
-def html_diff_content(old, new, lexer):
+def html_diff_content(old, new, lexer, context_len=5, fold_min=5):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
 
     fmt_l = RecordFormatter('left', diff)
@@ -621,13 +621,9 @@ def html_diff_content(old, new, lexer):
 
     out = []
     for change, group in groupby(zip(fmt_l.lines, fmt_r.lines), lambda pair: pair[0][0]):
-        context_len = 5
-        collapse_len = 5
         group = list(group)
-        do_collapse = not change and len(group) > 2*context_len + collapse_len
+        do_collapse = not change and len(group) > 2*context_len + fold_min
         for i, ((_change_left, line_left), (_change_right, line_right)) in enumerate(group):
-            context_len = 5
-            collapse_len = 5
             if do_collapse and i == context_len:
                 out.append(f'<div class="wsd-collapse"><div class="wsd-collapse-controls"><label><input type="checkbox" checked> Collapse {len(group) - 2*context_len} unchanged lines</label></div>')
             out.append(line_left)
@@ -636,8 +632,8 @@ def html_diff_content(old, new, lexer):
                 out.append('</div>')
     return '\n'.join(out)
 
-def html_diff_block(old, new, filename, lexer, hide_filename=True):
-    code = html_diff_content(old, new, lexer)
+def html_diff_block(old, new, filename, lexer, hide_filename=True, context_len=5, fold_min=5):
+    code = html_diff_content(old, new, lexer, context_len=context_len, fold_min=fold_min)
     filename = f'<div class="wsd-file-title"><div class="wsd-filename">&#x202D;{filename}</div></div>'
     if hide_filename:
         filename = ''
@@ -657,6 +653,8 @@ def cli():
     parser.add_argument('-L', '--list-lexers', action='store_true', help='List available lexers for -l/--lexer')
     parser.add_argument('-t', '--pagetitle', help='Override page title of output HTML file')
     parser.add_argument('-o', '--output', default=sys.stdout, type=argparse.FileType('w'), help='Name of output file (default: stdout)')
+    parser.add_argument('--context-len', type=int, default=5, help='Number of lines to always print around changes without folding')
+    parser.add_argument('--fold-min', type=int, default=5, help='Minimum number of unchanged lines beyond which to fold')
     parser.add_argument('--header', action='store_true', help='Only output HTML header with stylesheets and stuff, and no diff')
     parser.add_argument('--content', action='store_true', help='Only output HTML content, without header')
     parser.add_argument('--nofilename', action='store_true', help='Do not output file name headers')
@@ -734,7 +732,8 @@ def cli():
             except:
                 lexer = get_lexer_by_name('text')
 
-        diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer, hide_filename=args.nofilename))
+        diff_blocks.append(html_diff_block(old_text, new_text, suffix, lexer, hide_filename=args.nofilename,
+                                           context_len=args.context_len, fold_min=args.fold_min))
     body = '\n'.join(diff_blocks)
 
     if args.content:
