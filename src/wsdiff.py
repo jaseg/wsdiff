@@ -235,6 +235,33 @@ MAIN_CSS = r'''
     .wsd-lineno, .wsd-left {
         user-select: none;
     }
+
+    /* Collapsing runs of unchanged lines */
+    .wsd-collapse {
+        grid-column: 1 / span 4;
+        display: grid;
+        grid-template-columns: subgrid;
+    }
+
+    .wsd-collapse-controls {
+        grid-column: 1 / span 4;
+        display: flex;
+        justify-content: center;
+        color: #a0a0a0;
+
+        background-image: radial-gradient(#BBBBBB 1px, transparent 0);
+        background-size: 10px 10px;
+        background-position: center;
+        background-repeat: repeat-x;
+    }
+
+    .wsd-collapse-controls > label {
+        background-color: #f8f8f8;
+    }
+
+    .wsd-collapse:has(input[type="checkbox"]:checked) > span {
+        display: none;
+    }
 }
 
 @layer wsd-automatic-media-rule {
@@ -243,6 +270,10 @@ MAIN_CSS = r'''
         .wsd-diff {
             grid-auto-flow: dense;
             grid-template-columns: min-content min-content 1fr;
+        }
+
+        .wsd-collapse, .wsd-collapse-controls {
+            grid-column: 1 / span 3;
         }
 
         .wsd-lineno {
@@ -532,7 +563,7 @@ class RecordFormatter(Formatter):
                 if lineno_ours == lineno:
                     break
                 else:
-                    self.lines.append(f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>')
+                    self.lines.append((True, f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>'))
 
             if not change:
                 change_class = '' 
@@ -574,10 +605,10 @@ class RecordFormatter(Formatter):
                 line += '</span>'
 
             line += '</span>'
-            self.lines.append(line)
+            self.lines.append((change, line))
 
         for _ours_empty, (lineno_theirs, _diff_theirs), change in diff:
-            self.lines.append(f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>')
+            self.lines.append((True, f'<span class="wsd-lineno wsd-{self.side} wsd-empty"></span><span class="wsd-line wsd-{self.side} wsd-empty"></span>'))
 
 def html_diff_content(old, new, lexer):
     diff = list(difflib._mdiff(old.splitlines(), new.splitlines()))
@@ -588,7 +619,22 @@ def html_diff_content(old, new, lexer):
     fmt_r = RecordFormatter('right', diff)
     pygments.highlight(new, lexer, fmt_r)
 
-    return '\n'.join(chain.from_iterable(zip(fmt_l.lines, fmt_r.lines)))
+    out = []
+    for change, group in groupby(zip(fmt_l.lines, fmt_r.lines), lambda pair: pair[0][0]):
+        context_len = 5
+        collapse_len = 5
+        group = list(group)
+        do_collapse = not change and len(group) > 2*context_len + collapse_len
+        for i, ((_change_left, line_left), (_change_right, line_right)) in enumerate(group):
+            context_len = 5
+            collapse_len = 5
+            if do_collapse and i == context_len:
+                out.append(f'<div class="wsd-collapse"><div class="wsd-collapse-controls"><label><input type="checkbox" checked> Collapse {len(group) - 2*context_len} unchanged lines</label></div>')
+            out.append(line_left)
+            out.append(line_right)
+            if do_collapse and i == len(group) - context_len - 1:
+                out.append('</div>')
+    return '\n'.join(out)
 
 def html_diff_block(old, new, filename, lexer, hide_filename=True):
     code = html_diff_content(old, new, lexer)
