@@ -1,6 +1,6 @@
 [project]
 name = "wsdiff"
-version = "0.1.2"
+version = "0.2.0"
 authors = [{name="jaseg", email="code@jaseg.de"}]
 description = "wsdiff is a tool that produces a syntax-highlighted, self-contained, static HTML file that will show a colored, syntax-highlighted diff of two files or folders without external dependencies or javascript."
 requires-python = ">=3.7"
