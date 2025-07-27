@@ -634,6 +634,7 @@ def html_diff_content(old, new, lexer, context_len=5, fold_min=5):
     return '\n'.join(out)
 
 def html_diff_block(old, new, filename, lexer, hide_filename=True, context_len=5, fold_min=5):
+    lexer.stripnl = False # Make pygments preserve leading and trailing empty lines. 
     code = html_diff_content(old, new, lexer, context_len=context_len, fold_min=fold_min)
     filename = f'<div class="wsd-file-title"><div class="wsd-filename">&#x202D;{filename}</div></div>'
     if hide_filename:
