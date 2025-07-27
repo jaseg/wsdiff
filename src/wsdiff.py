@@ -151,6 +151,7 @@ MAIN_CSS = r'''
         padding-left: calc(4em + 5px);
         text-indent: -4em;
         padding-top: 2px;
+        align-self: stretch; /* Make sure empty lines don't collapse */
     }
 
     /* Make individual syntax tokens wrap anywhere */
