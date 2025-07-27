@@ -10,7 +10,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     ]
-dependencies = ["pygments"]
+dependencies = ["pygments", "witchhazel"]
     
 [project.urls]
 "Source" = "https://git.jaseg.de/wsdiff.git"

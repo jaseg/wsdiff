@@ -33,12 +33,16 @@ from collections import defaultdict
 from pathlib import Path
 import re
 from itertools import groupby, chain
+from functools import lru_cache
 
 import pygments
+from pygments.formatter import Formatter
 from pygments.formatters import HtmlFormatter
 from pygments.lexer import RegexLexer
 from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename, get_all_lexers, LEXERS
 from pygments import token
+from pygments.token import STANDARD_TYPES
+import witchhazel
 
 DIFF_STYLE_TOGGLE = r'''
     <div id="wsd-js-controls">
@@ -55,14 +59,92 @@ DIFF_STYLE_TOGGLE = r'''
 '''
 
 MAIN_CSS = r'''
+
+@media (prefers-color-scheme: light) {
+    html {
+        --c-bg-primary: #ffffff;
+        --c-fg-primary: #000000;
+        --c-bg-auxiliary: #f8f8f8;
+        --c-fg-auxiliary: #a0a0a0;
+        --c-border-line: #e0e0e0;
+        --c-bg-insert: #ecfdf0;
+        --c-bg-delete: #fbe9eb;
+        --c-bg-delete-lineno: #f9d7dc;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #fac5cd;
+        --c-fg-delete-word: #400000;
+        --c-fg-insert-word: #004000;
+        --c-bg-insert-word: #c7f0d2;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #ddfbe6;
+        --c-bg-empty: #f0f0f0;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-delete: #e0c8c8; /* pick a darker border color inside the light red gutter */
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    html {
+        --c-bg-primary: #010409;
+        --c-fg-primary: #a0a0a0;
+        --c-bg-auxiliary: #0d1117;
+        --c-fg-auxiliary: #f0f6fc;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-line: #3d444d;
+        --c-bg-insert: #223738;
+        --c-bg-delete: #280d1f;
+        --c-bg-delete-lineno: #421632;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #421632;
+        --c-fg-delete-word: #fac5cd;
+        --c-fg-insert-word: #c7f0d2;
+        --c-bg-insert-word: #325148;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #325148;
+        --c-bg-empty: #080b0f;
+        --c-border-delete: #e0c8c8;
+    }
+}
+
+@media print {
+    html {
+        /* Copy of the light theme, but we clip all light gray backgrounds to white. */
+        --c-bg-primary: #ffffff;
+        --c-fg-primary: #000000;
+        --c-bg-auxiliary: #ffffff;
+        --c-fg-auxiliary: #a0a0a0;
+        --c-border-line: #e0e0e0;
+        --c-bg-insert: #ecfdf0;
+        --c-bg-delete: #fbe9eb;
+        --c-bg-delete-lineno: #f9d7dc;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #fac5cd;
+        --c-fg-delete-word: #400000;
+        --c-fg-insert-word: #004000;
+        --c-bg-insert-word: #c7f0d2;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #ddfbe6;
+        --c-bg-empty: #ffffff;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-delete: #e0c8c8;
+    }
+}
+
 @layer wsd-base-style {
+    html {
+        background-color: var(--c-bg-primary);
+        height: 100%;
+        width: 100%;
+    }
+
     #wsd-js-controls {
         display: none;
-        background-color: #f8f8f8;
+        color: var(--c-fg-primary);
+        background-color: var(--c-bg-auxiliary);
         padding: 5px 20px;
         font-size: 10pt;
         font-weight: bold;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--c-border-line);
         position: sticky;
         top: 0;
         z-index: 1;
@@ -79,8 +161,8 @@ MAIN_CSS = r'''
         }
 
         .wsd-file-title {
-            background-color: #f8f8f8;
-            border-bottom: solid 1px #e0e0e0;
+            background-color: var(--c-bg-auxiliary);
+            border-bottom: solid 1px var(--c-border-line);
         }
     }
 
@@ -117,8 +199,8 @@ MAIN_CSS = r'''
     .wsd-file-container {
         font-family: monospace;
         font-size: 9pt;
-        background-color: #f8f8f8;
-        border: solid 1px #e0e0e0;
+        background-color: var(--c-bg-auxiliary);
+        border: solid 1px var(--c-border-line);
         margin: 15px;
     }
 
@@ -140,11 +222,16 @@ MAIN_CSS = r'''
         direction: rtl;
     }
 
+    .wsd-diff-files {
+        color: var(--c-fg-primary);
+    }
+
     .wsd-diff {
+        background-color: var(--c-bg-primary);
         overflow-x: auto;
         display: grid;
         align-items: start;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid var(--c-border-line);
     }
 
     .wsd-line {
@@ -165,31 +252,31 @@ MAIN_CSS = r'''
     }
 
     .wsd-line.wsd-left.wsd-change, .wsd-line.wsd-left.wsd-insert {
-        background-color: #fbe9eb;
+        background-color: var(--c-bg-delete);
     }
 
     .wsd-line.wsd-right.wsd-change, .wsd-line.wsd-right.wsd-insert {
-        background-color: #ecfdf0;
+        background-color: var(--c-bg-insert);
     }
 
     .wsd-lineno.wsd-left.wsd-change, .wsd-lineno.wsd-left.wsd-insert {
-        background-color: #f9d7dc;
-        color: #ae969a;
+        background-color: var(--c-bg-delete-lineno);
+        color: var(--c-fg-delete-lineno);
     }
 
     .wsd-lineno.wsd-right.wsd-change, .wsd-lineno.wsd-right.wsd-insert {
-        background-color: #ddfbe6;
-        color: #9bb0a1;
+        background-color: var(--c-bg-insert-lineno);
+        color: var(--c-fg-insert-lineno);
     }
 
     .wsd-right > .wsd-word-change {
-        background-color: #c7f0d2;
-        color: #004000;
+        background-color: var(--c-bg-insert-word);
+        color: var(--c-fg-insert-word);
     }
 
     .wsd-left > .wsd-word-change {
-        background-color: #fac5cd;
-        color: #400000;
+        background-color: var(--c-bg-delete-word);
+        color: var(--c-fg-delete-word);
     }
 
     .wsd-lineno {
@@ -200,14 +287,10 @@ MAIN_CSS = r'''
         overflow: clip;
         position: relative;
         text-align: right;
-        color: #a0a0a0;
-        background-color: #f8f8f8;
-        border-right: 1px solid #e0e0e0;
+        color: var(--c-fg-auxiliary);
+        background-color: var(--c-bg-auxiliary);
+        border-right: 1px solid var(--c-border-line);
         align-self: stretch;
-    }
-
-    .wsd-lineno.wsd-change, .wsd-lineno.wsd-insert {
-        color: #000000;
     }
 
     .wsd-lineno::after {
@@ -215,7 +298,7 @@ MAIN_CSS = r'''
         right: 0;
         content: "\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳";
         white-space: pre;
-        color: #a0a0a0;
+        color: var(--c-fg-auxiliary);
     }
 
     /* Default rules for split diff for wide screens (laptops) */
@@ -224,7 +307,7 @@ MAIN_CSS = r'''
     }
 
     .wsd-empty {
-        background-color: #f0f0f0;
+        background-color: var(--c-bg-empty);
         align-self: stretch;
     }
 
@@ -248,16 +331,16 @@ MAIN_CSS = r'''
         grid-column: 1 / span 4;
         display: flex;
         justify-content: center;
-        color: #a0a0a0;
+        color: var(--c-fg-auxiliary);
 
-        background-image: radial-gradient(#BBBBBB 1px, transparent 0);
+        background-image: radial-gradient(var(--c-fg-foldline) 1px, transparent 0);
         background-size: 10px 10px;
         background-position: center;
         background-repeat: repeat-x;
     }
 
     .wsd-collapse-controls > label {
-        background-color: #f8f8f8;
+        background-color: var(--c-bg-auxiliary);
     }
 
     .wsd-collapse:has(input[type="checkbox"]:checked) > span {
@@ -300,7 +383,7 @@ MAIN_CSS = r'''
             content: "";
             align-self: stretch;
             grid-column: 1;
-            border-right: 1px solid #e0e0e0;
+            border-right: 1px solid var(--c-border-line);
             margin-right: -6px; /* move border into column gap, and 1px over to align with other borders */
         }
 
@@ -308,12 +391,12 @@ MAIN_CSS = r'''
             content: "";
             align-self: stretch;
             grid-column: 2;
-            border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
+            border-left: 1px solid var(--c-border-delete);
             margin-left: -5px;
         }
         
         .wsd-lineno.wsd-left.wsd-insert {
-            border-right: 1px solid #e0c8c8;
+            border-right: 1px solid var(--c-border-delete);
         }
 
         .wsd-lineno.wsd-right.wsd-change::after {
@@ -359,7 +442,7 @@ MAIN_CSS = r'''
         }
 
         .wsd-lineno.wsd-left.wsd-empty {
-            background-color: #ddfbe6;
+            background-color: var(--c-bg-insert-lineno);
         }
 
         /* line continuation arrows only in right line number column */
@@ -369,7 +452,7 @@ MAIN_CSS = r'''
         .wsd-lineno.wsd-left.wsd-insert::before {
             content: "";
             grid-column: 2;
-            border-left: 1px solid #e0c8c8; /* pick a darker border color inside the light red gutter */
+            border-left: 1px solid var(--c-border-delete); /* pick a darker border color inside the light red gutter */
             margin-left: -5px;
         }
     }
@@ -464,70 +547,6 @@ HTML_TEMPLATE = r'''
     </body>
 </html>
 '''
-
-PYGMENTS_CSS = '''
-body .wsd-hll { background-color: #ffffcc }
-body .wsd-c { color: #177500 } /* Comment */
-body .wsd-err { color: #000000 } /* Error */
-body .wsd-k { color: #A90D91 } /* Keyword */
-body .wsd-l { color: #1C01CE } /* Literal */
-body .wsd-n { color: #000000 } /* Name */
-body .wsd-o { color: #000000 } /* Operator */
-body .wsd-cm { color: #177500 } /* Comment.Multiline */
-body .wsd-cp { color: #633820 } /* Comment.Preproc */
-body .wsd-c1 { color: #177500 } /* Comment.Single */
-body .wsd-cs { color: #177500 } /* Comment.Special */
-body .wsd-kc { color: #A90D91 } /* Keyword.Constant */
-body .wsd-kd { color: #A90D91 } /* Keyword.Declaration */
-body .wsd-kn { color: #A90D91 } /* Keyword.Namespace */
-body .wsd-kp { color: #A90D91 } /* Keyword.Pseudo */
-body .wsd-kr { color: #A90D91 } /* Keyword.Reserved */
-body .wsd-kt { color: #A90D91 } /* Keyword.Type */
-body .wsd-ld { color: #1C01CE } /* Literal.Date */
-body .wsd-m { color: #1C01CE } /* Literal.Number */
-body .wsd-s { color: #C41A16 } /* Literal.String */
-body .wsd-na { color: #836C28 } /* Name.Attribute */
-body .wsd-nb { color: #A90D91 } /* Name.Builtin */
-body .wsd-nc { color: #3F6E75 } /* Name.Class */
-body .wsd-no { color: #000000 } /* Name.Constant */
-body .wsd-nd { color: #000000 } /* Name.Decorator */
-body .wsd-ni { color: #000000 } /* Name.Entity */
-body .wsd-ne { color: #000000 } /* Name.Exception */
-body .wsd-nf { color: #000000 } /* Name.Function */
-body .wsd-nl { color: #000000 } /* Name.Label */
-body .wsd-nn { color: #000000 } /* Name.Namespace */
-body .wsd-nx { color: #000000 } /* Name.Other */
-body .wsd-py { color: #000000 } /* Name.Property */
-body .wsd-nt { color: #000000 } /* Name.Tag */
-body .wsd-nv { color: #000000 } /* Name.Variable */
-body .wsd-ow { color: #000000 } /* Operator.Word */
-body .wsd-mb { color: #1C01CE } /* Literal.Number.Bin */
-body .wsd-mf { color: #1C01CE } /* Literal.Number.Float */
-body .wsd-mh { color: #1C01CE } /* Literal.Number.Hex */
-body .wsd-mi { color: #1C01CE } /* Literal.Number.Integer */
-body .wsd-mo { color: #1C01CE } /* Literal.Number.Oct */
-body .wsd-sb { color: #C41A16 } /* Literal.String.Backtick */
-body .wsd-sc { color: #2300CE } /* Literal.String.Char */
-body .wsd-sd { color: #C41A16 } /* Literal.String.Doc */
-body .wsd-s2 { color: #C41A16 } /* Literal.String.Double */
-body .wsd-se { color: #C41A16 } /* Literal.String.Escape */
-body .wsd-sh { color: #C41A16 } /* Literal.String.Heredoc */
-body .wsd-si { color: #C41A16 } /* Literal.String.Interpol */
-body .wsd-sx { color: #C41A16 } /* Literal.String.Other */
-body .wsd-sr { color: #C41A16 } /* Literal.String.Regex */
-body .wsd-s1 { color: #C41A16 } /* Literal.String.Single */
-body .wsd-ss { color: #C41A16 } /* Literal.String.Symbol */
-body .wsd-bp { color: #5B269A } /* Name.Builtin.Pseudo */
-body .wsd-vc { color: #000000 } /* Name.Variable.Class */
-body .wsd-vg { color: #000000 } /* Name.Variable.Global */
-body .wsd-vi { color: #000000 } /* Name.Variable.Instance */
-body .wsd-il { color: #1C01CE } /* Literal.Number.Integer.Long */
-'''
-
-from pygments.formatter import Formatter
-from pygments.token import STANDARD_TYPES
-
-from functools import lru_cache
 
 @lru_cache(maxsize=256)
 def get_token_class(ttype):
@@ -677,7 +696,16 @@ def cli():
     if args.syntax_css:
         syntax_css = Path(args.syntax_css).read_text()
     else:
-        syntax_css = PYGMENTS_CSS
+        light_css = HtmlFormatter(classprefix='wsd-', style='xcode').get_style_defs()
+        dark_css  = HtmlFormatter(classprefix='wsd-', style=witchhazel.WitchHazelStyle).get_style_defs()
+
+        syntax_css = textwrap.dedent(f'''@media print, (prefers-color-scheme: light) {{
+                {light_css}
+            }}
+
+            @media (prefers-color-scheme: dark) {{
+                {dark_css}
+            }}''')
 
     if args.header:
         print(string.Template(HTML_TEMPLATE).substitute(
