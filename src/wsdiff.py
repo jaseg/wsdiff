@@ -337,6 +337,7 @@ MAIN_CSS = r'''
         background-size: 10px 10px;
         background-position: center;
         background-repeat: repeat-x;
+        background-color: var(--c-bg-auxiliary)
     }
 
     .wsd-collapse-controls > label {
