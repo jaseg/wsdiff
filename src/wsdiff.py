@@ -515,8 +515,7 @@ DIFF_STYLE_SCRIPT = r'''
     document.getElementById('wsd-js-controls').style = 'display: flex';
 '''
 
-HTML_TEMPLATE = r'''
-<!DOCTYPE html>
+HTML_TEMPLATE = r'''<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
