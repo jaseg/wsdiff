@@ -1,0 +1,890 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>diff: example_old.py / example.py</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="mobile-web-app-capable" content="yes">
+        <style id="wsd-main-style">
+            html, body {
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+            }
+
+            
+
+@media (prefers-color-scheme: light) {
+    html {
+        --c-bg-primary: #ffffff;
+        --c-fg-primary: #000000;
+        --c-bg-auxiliary: #f8f8f8;
+        --c-fg-auxiliary: #a0a0a0;
+        --c-border-line: #e0e0e0;
+        --c-bg-insert: #ecfdf0;
+        --c-bg-delete: #fbe9eb;
+        --c-bg-delete-lineno: #f9d7dc;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #fac5cd;
+        --c-fg-delete-word: #400000;
+        --c-fg-insert-word: #004000;
+        --c-bg-insert-word: #c7f0d2;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #ddfbe6;
+        --c-bg-empty: #f0f0f0;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-delete: #e0c8c8; /* pick a darker border color inside the light red gutter */
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    html {
+        --c-bg-primary: #010409;
+        --c-fg-primary: #a0a0a0;
+        --c-bg-auxiliary: #0d1117;
+        --c-fg-auxiliary: #f0f6fc;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-line: #3d444d;
+        --c-bg-insert: #223738;
+        --c-bg-delete: #280d1f;
+        --c-bg-delete-lineno: #421632;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #421632;
+        --c-fg-delete-word: #fac5cd;
+        --c-fg-insert-word: #c7f0d2;
+        --c-bg-insert-word: #325148;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #325148;
+        --c-bg-empty: #080b0f;
+        --c-border-delete: #e0c8c8;
+    }
+}
+
+@media print {
+    html {
+        /* Copy of the light theme, but we clip all light gray backgrounds to white. */
+        --c-bg-primary: #ffffff;
+        --c-fg-primary: #000000;
+        --c-bg-auxiliary: #ffffff;
+        --c-fg-auxiliary: #a0a0a0;
+        --c-border-line: #e0e0e0;
+        --c-bg-insert: #ecfdf0;
+        --c-bg-delete: #fbe9eb;
+        --c-bg-delete-lineno: #f9d7dc;
+        --c-fg-delete-lineno: #ae969a;
+        --c-bg-delete-word: #fac5cd;
+        --c-fg-delete-word: #400000;
+        --c-fg-insert-word: #004000;
+        --c-bg-insert-word: #c7f0d2;
+        --c-fg-insert-lineno: #9bb0a1;
+        --c-bg-insert-lineno: #ddfbe6;
+        --c-bg-empty: #ffffff;
+        --c-fg-foldline: #bbbbbb;
+        --c-border-delete: #e0c8c8;
+    }
+}
+
+@layer wsd-base-style {
+    html {
+        background-color: var(--c-bg-primary);
+        height: 100%;
+        width: 100%;
+    }
+
+    #wsd-js-controls {
+        display: none;
+        color: var(--c-fg-primary);
+        background-color: var(--c-bg-auxiliary);
+        padding: 5px 20px;
+        font-size: 10pt;
+        font-weight: bold;
+        border: 1px solid var(--c-border-line);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        flex-direction: row-reverse;
+    }
+
+    @media screen and (max-width: 40em) {
+        #wsd-js-controls {
+            position: initial;
+        }
+
+        .wsd-diff {
+            border-top: none;
+        }
+
+        .wsd-file-title {
+            background-color: var(--c-bg-auxiliary);
+            border-bottom: solid 1px var(--c-border-line);
+        }
+    }
+
+    #wsd-js-controls input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    #wsd-js-controls input, #wsd-js-controls label, #wsd-js-controls .control-label {
+        vertical-align: middle;
+    }
+
+    .wsd-field-group {
+        display: inline-block;
+    }
+
+    .wsd-field {
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    #wsd-js-controls label {
+        font-weight: normal;
+        margin-right: .5em;
+        margin-left: 5px;
+    }
+
+    .wsd-control-label {
+        margin-right: .5em;
+        margin-left: 5px;
+        padding-bottom: 3px;
+    }
+
+    .wsd-file-container {
+        font-family: monospace;
+        font-size: 9pt;
+        background-color: var(--c-bg-auxiliary);
+        border: solid 1px var(--c-border-line);
+        margin: 15px;
+    }
+
+    .wsd-file-title {
+        padding: 10px 20px;
+        font-size: 10pt;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+    }
+    
+    .wsd-filename {
+        max-width: 30em;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        direction: rtl;
+    }
+
+    .wsd-diff-files {
+        color: var(--c-fg-primary);
+    }
+
+    .wsd-diff {
+        background-color: var(--c-bg-primary);
+        overflow-x: auto;
+        display: grid;
+        align-items: start;
+        border-top: 1px solid var(--c-border-line);
+    }
+
+    .wsd-line {
+        padding-left: calc(4em + 5px);
+        text-indent: -4em;
+        padding-top: 2px;
+        align-self: stretch; /* Make sure empty lines don't collapse */
+    }
+
+    /* Make individual syntax tokens wrap anywhere */
+    .wsd-line > span {
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+
+    .wsd-line { 
+        min-width: 15em;
+    }
+
+    .wsd-line.wsd-left.wsd-change, .wsd-line.wsd-left.wsd-insert {
+        background-color: var(--c-bg-delete);
+    }
+
+    .wsd-line.wsd-right.wsd-change, .wsd-line.wsd-right.wsd-insert {
+        background-color: var(--c-bg-insert);
+    }
+
+    .wsd-lineno.wsd-left.wsd-change, .wsd-lineno.wsd-left.wsd-insert {
+        background-color: var(--c-bg-delete-lineno);
+        color: var(--c-fg-delete-lineno);
+    }
+
+    .wsd-lineno.wsd-right.wsd-change, .wsd-lineno.wsd-right.wsd-insert {
+        background-color: var(--c-bg-insert-lineno);
+        color: var(--c-fg-insert-lineno);
+    }
+
+    .wsd-right > .wsd-word-change {
+        background-color: var(--c-bg-insert-word);
+        color: var(--c-fg-insert-word);
+    }
+
+    .wsd-left > .wsd-word-change {
+        background-color: var(--c-bg-delete-word);
+        color: var(--c-fg-delete-word);
+    }
+
+    .wsd-lineno {
+        word-break: keep-all;
+        margin: 0;
+        padding-left: 30px;
+        padding-right: 5px;
+        overflow: clip;
+        position: relative;
+        text-align: right;
+        color: var(--c-fg-auxiliary);
+        background-color: var(--c-bg-auxiliary);
+        border-right: 1px solid var(--c-border-line);
+        align-self: stretch;
+    }
+
+    .wsd-lineno::after {
+        position: absolute;
+        right: 0;
+        content: "\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳\a↳";
+        white-space: pre;
+        color: var(--c-fg-auxiliary);
+    }
+
+    /* Default rules for split diff for wide screens (laptops) */
+    .wsd-diff {
+        grid-template-columns: min-content 1fr min-content 1fr;
+    }
+
+    .wsd-empty {
+        background-color: var(--c-bg-empty);
+        align-self: stretch;
+    }
+
+    /* line continuation arrows only in non-empty lines */
+    .wsd-lineno.wsd-empty::after {
+        content: "";
+    }
+
+    .wsd-lineno, .wsd-left {
+        user-select: none;
+    }
+
+    /* Collapsing runs of unchanged lines */
+    .wsd-collapse {
+        grid-column: 1 / span 4;
+        display: grid;
+        grid-template-columns: subgrid;
+    }
+
+    .wsd-collapse-controls {
+        grid-column: 1 / span 4;
+        display: flex;
+        justify-content: center;
+        color: var(--c-fg-auxiliary);
+
+        background-image: radial-gradient(var(--c-fg-foldline) 1px, transparent 0);
+        background-size: 10px 10px;
+        background-position: center;
+        background-repeat: repeat-x;
+        background-color: var(--c-bg-auxiliary)
+    }
+
+    .wsd-collapse-controls > label {
+        background-color: var(--c-bg-auxiliary);
+    }
+
+    .wsd-collapse:has(input[type="checkbox"]:checked) > span {
+        display: none;
+    }
+}
+
+@layer wsd-automatic-media-rule {
+    /* Unified diff for narrow screens (phones) */
+    @media screen and (max-width: 70em) {
+        .wsd-diff {
+            grid-auto-flow: dense;
+            grid-template-columns: min-content min-content 1fr;
+        }
+
+        .wsd-collapse, .wsd-collapse-controls {
+            grid-column: 1 / span 3;
+        }
+
+        .wsd-lineno {
+            padding-left: 1em;
+        }
+
+        .wsd-lineno.wsd-left {
+            grid-column: 1;
+        }
+
+        .wsd-lineno.wsd-left.wsd-change, .wsd-lineno.wsd-right.wsd-change {
+            grid-column: 1 / span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding-left: 0;
+            padding-right: 0;
+            grid-auto-flow: dense;
+            /* To make alignment of left line number work, since we loose margin and padding control using ::before. */
+            column-gap: 10px;
+        }
+
+        .wsd-lineno.wsd-right.wsd-change::before {
+            content: "";
+            align-self: stretch;
+            grid-column: 1;
+            border-right: 1px solid var(--c-border-line);
+            margin-right: -6px; /* move border into column gap, and 1px over to align with other borders */
+        }
+
+        .wsd-lineno.wsd-left.wsd-change::before {
+            content: "";
+            align-self: stretch;
+            grid-column: 2;
+            border-left: 1px solid var(--c-border-delete);
+            margin-left: -5px;
+        }
+        
+        .wsd-lineno.wsd-left.wsd-insert {
+            border-right: 1px solid var(--c-border-delete);
+        }
+
+        .wsd-lineno.wsd-right.wsd-change::after {
+            grid-column: 2;
+        }
+
+        .wsd-lineno.wsd-left.wsd-insert {
+            grid-column: 1 / span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-flow: dense;
+            column-gap: 10px;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .wsd-lineno.wsd-right {
+            grid-column: 2;
+        }
+
+        .wsd-lineno.wsd-right.wsd-insert {
+            grid-column: 2;
+        }
+
+        .wsd-line.wsd-left, .wsd-line.wsd-right.wsd-empty {
+            display: none;
+        }
+
+        .wsd-line {
+            grid-column: 3;
+        }
+
+        .wsd-line.wsd-left.wsd-insert {
+            display: block;
+        }
+
+        .wsd-line.wsd-left.wsd-change {
+            display: block;
+        }
+
+        .wsd-lineno.wsd-right.wsd-empty {
+            display: none;
+        }
+
+        .wsd-lineno.wsd-left.wsd-empty {
+            background-color: var(--c-bg-insert-lineno);
+        }
+
+        /* line continuation arrows only in right line number column */
+        .wsd-lineno.wsd-left.wsd-insert::after {
+        }
+
+        .wsd-lineno.wsd-left.wsd-insert::before {
+            content: "";
+            grid-column: 2;
+            border-left: 1px solid var(--c-border-delete); /* pick a darker border color inside the light red gutter */
+            margin-left: -5px;
+        }
+    }
+}
+
+        </style>
+        <style>
+            @media print, (prefers-color-scheme: light) {
+                pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.hll { background-color: #ffffcc }
+.wsd-c { color: #177500 } /* Comment */
+.wsd-err { color: #000 } /* Error */
+.wsd-k { color: #A90D91 } /* Keyword */
+.wsd-l { color: #1C01CE } /* Literal */
+.wsd-n { color: #000 } /* Name */
+.wsd-o { color: #000 } /* Operator */
+.wsd-ch { color: #177500 } /* Comment.Hashbang */
+.wsd-cm { color: #177500 } /* Comment.Multiline */
+.wsd-cp { color: #633820 } /* Comment.Preproc */
+.wsd-cpf { color: #177500 } /* Comment.PreprocFile */
+.wsd-c1 { color: #177500 } /* Comment.Single */
+.wsd-cs { color: #177500 } /* Comment.Special */
+.wsd-kc { color: #A90D91 } /* Keyword.Constant */
+.wsd-kd { color: #A90D91 } /* Keyword.Declaration */
+.wsd-kn { color: #A90D91 } /* Keyword.Namespace */
+.wsd-kp { color: #A90D91 } /* Keyword.Pseudo */
+.wsd-kr { color: #A90D91 } /* Keyword.Reserved */
+.wsd-kt { color: #A90D91 } /* Keyword.Type */
+.wsd-ld { color: #1C01CE } /* Literal.Date */
+.wsd-m { color: #1C01CE } /* Literal.Number */
+.wsd-s { color: #C41A16 } /* Literal.String */
+.wsd-na { color: #836C28 } /* Name.Attribute */
+.wsd-nb { color: #A90D91 } /* Name.Builtin */
+.wsd-nc { color: #3F6E75 } /* Name.Class */
+.wsd-no { color: #000 } /* Name.Constant */
+.wsd-nd { color: #000 } /* Name.Decorator */
+.wsd-ni { color: #000 } /* Name.Entity */
+.wsd-ne { color: #000 } /* Name.Exception */
+.wsd-nf { color: #000 } /* Name.Function */
+.wsd-nl { color: #000 } /* Name.Label */
+.wsd-nn { color: #000 } /* Name.Namespace */
+.wsd-nx { color: #000 } /* Name.Other */
+.wsd-py { color: #000 } /* Name.Property */
+.wsd-nt { color: #000 } /* Name.Tag */
+.wsd-nv { color: #000 } /* Name.Variable */
+.wsd-ow { color: #000 } /* Operator.Word */
+.wsd-mb { color: #1C01CE } /* Literal.Number.Bin */
+.wsd-mf { color: #1C01CE } /* Literal.Number.Float */
+.wsd-mh { color: #1C01CE } /* Literal.Number.Hex */
+.wsd-mi { color: #1C01CE } /* Literal.Number.Integer */
+.wsd-mo { color: #1C01CE } /* Literal.Number.Oct */
+.wsd-sa { color: #C41A16 } /* Literal.String.Affix */
+.wsd-sb { color: #C41A16 } /* Literal.String.Backtick */
+.wsd-sc { color: #2300CE } /* Literal.String.Char */
+.wsd-dl { color: #C41A16 } /* Literal.String.Delimiter */
+.wsd-sd { color: #C41A16 } /* Literal.String.Doc */
+.wsd-s2 { color: #C41A16 } /* Literal.String.Double */
+.wsd-se { color: #C41A16 } /* Literal.String.Escape */
+.wsd-sh { color: #C41A16 } /* Literal.String.Heredoc */
+.wsd-si { color: #C41A16 } /* Literal.String.Interpol */
+.wsd-sx { color: #C41A16 } /* Literal.String.Other */
+.wsd-sr { color: #C41A16 } /* Literal.String.Regex */
+.wsd-s1 { color: #C41A16 } /* Literal.String.Single */
+.wsd-ss { color: #C41A16 } /* Literal.String.Symbol */
+.wsd-bp { color: #5B269A } /* Name.Builtin.Pseudo */
+.wsd-fm { color: #000 } /* Name.Function.Magic */
+.wsd-vc { color: #000 } /* Name.Variable.Class */
+.wsd-vg { color: #000 } /* Name.Variable.Global */
+.wsd-vi { color: #000 } /* Name.Variable.Instance */
+.wsd-vm { color: #000 } /* Name.Variable.Magic */
+.wsd-il { color: #1C01CE } /* Literal.Number.Integer.Long */
+            }
+
+            @media (prefers-color-scheme: dark) {
+                pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.hll { background-color: #716799 }
+.wsd-c { color: #B0BEC5 } /* Comment */
+.wsd-err { color: #960050; background-color: #1E0010 } /* Error */
+.wsd-k { color: #C2FFDF } /* Keyword */
+.wsd-l { color: #AE81FF } /* Literal */
+.wsd-n { color: #F8F8F2 } /* Name */
+.wsd-o { color: #FFB8D1 } /* Operator */
+.wsd-p { color: #F8F8F2 } /* Punctuation */
+.wsd-ch { color: #B0BEC5 } /* Comment.Hashbang */
+.wsd-cm { color: #B0BEC5 } /* Comment.Multiline */
+.wsd-cp { color: #B0BEC5 } /* Comment.Preproc */
+.wsd-cpf { color: #B0BEC5 } /* Comment.PreprocFile */
+.wsd-c1 { color: #B0BEC5 } /* Comment.Single */
+.wsd-cs { color: #B0BEC5 } /* Comment.Special */
+.wsd-gd { color: #F92672 } /* Generic.Deleted */
+.wsd-ge { font-style: italic } /* Generic.Emph */
+.wsd-gi { color: #A6E22E } /* Generic.Inserted */
+.wsd-gs { font-weight: bold } /* Generic.Strong */
+.wsd-gu { color: #75715E } /* Generic.Subheading */
+.wsd-kc { color: #C2FFDF } /* Keyword.Constant */
+.wsd-kd { color: #C2FFDF } /* Keyword.Declaration */
+.wsd-kn { color: #FFB8D1 } /* Keyword.Namespace */
+.wsd-kp { color: #C2FFDF } /* Keyword.Pseudo */
+.wsd-kr { color: #C2FFDF } /* Keyword.Reserved */
+.wsd-kt { color: #C2FFDF } /* Keyword.Type */
+.wsd-ld { color: #E6DB74 } /* Literal.Date */
+.wsd-m { color: #C5A3FF } /* Literal.Number */
+.wsd-s { color: #1BC5E0 } /* Literal.String */
+.wsd-na { color: #CEB1FF } /* Name.Attribute */
+.wsd-nb { color: #F8F8F2 } /* Name.Builtin */
+.wsd-nc { color: #CEB1FF } /* Name.Class */
+.wsd-no { color: #C5A3FF } /* Name.Constant */
+.wsd-nd { color: #CEB1FF } /* Name.Decorator */
+.wsd-ni { color: #F8F8F2 } /* Name.Entity */
+.wsd-ne { color: #CEB1FF } /* Name.Exception */
+.wsd-nf { color: #CEB1FF } /* Name.Function */
+.wsd-nl { color: #F8F8F2 } /* Name.Label */
+.wsd-nn { color: #F8F8F2 } /* Name.Namespace */
+.wsd-nx { color: #F8F8F2 } /* Name.Other */
+.wsd-py { color: #F8F8F2 } /* Name.Property */
+.wsd-nt { color: #FFB8D1 } /* Name.Tag */
+.wsd-nv { color: #F8F8F2 } /* Name.Variable */
+.wsd-ow { color: #FFB8D1 } /* Operator.Word */
+.wsd-pm { color: #F8F8F2 } /* Punctuation.Marker */
+.wsd-w { color: #A8757B } /* Text.Whitespace */
+.wsd-mb { color: #C5A3FF } /* Literal.Number.Bin */
+.wsd-mf { color: #C5A3FF } /* Literal.Number.Float */
+.wsd-mh { color: #C5A3FF } /* Literal.Number.Hex */
+.wsd-mi { color: #C5A3FF } /* Literal.Number.Integer */
+.wsd-mo { color: #C5A3FF } /* Literal.Number.Oct */
+.wsd-sa { color: #1BC5E0 } /* Literal.String.Affix */
+.wsd-sb { color: #1BC5E0 } /* Literal.String.Backtick */
+.wsd-sc { color: #1BC5E0 } /* Literal.String.Char */
+.wsd-dl { color: #1BC5E0 } /* Literal.String.Delimiter */
+.wsd-sd { color: #1BC5E0 } /* Literal.String.Doc */
+.wsd-s2 { color: #1BC5E0 } /* Literal.String.Double */
+.wsd-se { color: #1BC5E0 } /* Literal.String.Escape */
+.wsd-sh { color: #1BC5E0 } /* Literal.String.Heredoc */
+.wsd-si { color: #1BC5E0 } /* Literal.String.Interpol */
+.wsd-sx { color: #1BC5E0 } /* Literal.String.Other */
+.wsd-sr { color: #1BC5E0 } /* Literal.String.Regex */
+.wsd-s1 { color: #1BC5E0 } /* Literal.String.Single */
+.wsd-ss { color: #1BC5E0 } /* Literal.String.Symbol */
+.wsd-bp { color: #80CBC4 } /* Name.Builtin.Pseudo */
+.wsd-fm { color: #CEB1FF } /* Name.Function.Magic */
+.wsd-vc { color: #F8F8F2 } /* Name.Variable.Class */
+.wsd-vg { color: #F8F8F2 } /* Name.Variable.Global */
+.wsd-vi { color: #F8F8F2 } /* Name.Variable.Instance */
+.wsd-vm { color: #F8F8F2 } /* Name.Variable.Magic */
+.wsd-il { color: #C5A3FF } /* Literal.Number.Integer.Long */
+            }
+        </style>
+    </head>
+    <body>
+        
+    <div id="wsd-js-controls">
+        <div class="wsd-single-control">
+            <span class="wsd-control-label">Split view</span>
+            <span class="wsd-three-way-toggle">
+                <div class="wsd-field-group">
+                    <div class="wsd-field"><input type="checkbox" id="wsd-toggle-split-auto" checked></input><label for="wsd-toggle-split-auto">Auto</label></div>
+                    <div class="wsd-field"><input type="checkbox" id="wsd-toggle-split-force" disabled></input><label for="wsd-toggle-split-force">Split view</label></div>
+                </div>
+            </span>
+        </div>
+    </div>
+
+        <script>
+            
+    const findStylesheet = (id => Array.from(document.styleSheets).find(element => element.ownerNode && element.ownerNode.id == id));
+    const findRule = ((stylesheet, name) => Array.from(stylesheet.cssRules).find(
+                    element => (element instanceof CSSLayerBlockRule && element.name == name)).cssRules[0]);
+
+    const automaticMediaElement = findRule(findStylesheet('wsd-main-style'), 'wsd-automatic-media-rule');
+    const automaticMediaRule = automaticMediaElement.media[0];
+    const impossibleMediaRule = "screen and (max-width: 0px)";
+    const tautologicalMediaRule = "screen and (min-width: 0px)";
+
+    const toggleAuto = document.getElementById("wsd-toggle-split-auto");
+    const toggleForce = document.getElementById("wsd-toggle-split-force");
+    toggleAuto.checked = true;
+    toggleForce.disabled = true;
+
+    toggleAuto.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        toggleForce.disabled = automatic;
+        if (automatic) {
+            automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+            automaticMediaElement.media.appendMedium(automaticMediaRule);
+        } else {
+            automaticMediaElement.media.deleteMedium(automaticMediaRule);
+            if (toggleForce.checked) {
+                automaticMediaElement.media.appendMedium(impossibleMediaRule);
+            } else {
+                automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+            }
+        }
+    });
+
+    toggleForce.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        if (!automatic) {
+            automaticMediaElement.media.deleteMedium(automaticMediaElement.media[0]);
+            if (toggleForce.checked) {
+                automaticMediaElement.media.appendMedium(impossibleMediaRule);
+            } else {
+                automaticMediaElement.media.appendMedium(tautologicalMediaRule);
+            }
+        }
+    });
+
+    const mediaMatch = window.matchMedia(automaticMediaRule);
+    mediaMatch.addEventListener('change', (event) => {
+        const automatic = toggleAuto.checked;
+        if (automatic) {
+            toggleForce.checked = !event.matches;
+        }
+    });
+    toggleForce.checked = !mediaMatch.matches;
+
+    document.getElementById('wsd-js-controls').style = 'display: flex';
+
+        </script>
+        <div class="wsd-diff-files">
+            <div class="wsd-file-container">
+            <div class="wsd-file-title"><div class="wsd-filename">&#x202D;example.py</div></div>
+            <div class="wsd-diff">
+                <span class="wsd-lineno wsd-left">1</span><span class="wsd-line wsd-left"><span class="wsd-ch">#!/usr/bin/env python3</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">1</span><span class="wsd-line wsd-right"><span class="wsd-ch">#!/usr/bin/env python3</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">2</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">2</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">3</span><span class="wsd-line wsd-left"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">math</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">3</span><span class="wsd-line wsd-right"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">math</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">4</span><span class="wsd-line wsd-left"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">itertools</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">4</span><span class="wsd-line wsd-right"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">itertools</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">5</span><span class="wsd-line wsd-left"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">textwrap</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">5</span><span class="wsd-line wsd-right"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">textwrap</span><span class="wsd-w"></span></span></span>
+<div class="wsd-collapse"><div class="wsd-collapse-controls"><label><input type="checkbox" checked> Collapse 24 unchanged lines</label></div>
+<span class="wsd-lineno wsd-left">6</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">6</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">7</span><span class="wsd-line wsd-left"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">click</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">7</span><span class="wsd-line wsd-right"><span class="wsd-kn">import</span><span class="wsd-w"> </span><span class="wsd-nn">click</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">8</span><span class="wsd-line wsd-left"><span class="wsd-kn">from</span><span class="wsd-w"> </span><span class="wsd-nn">reedmuller</span><span class="wsd-w"> </span><span class="wsd-kn">import</span><span class="n"> </span><span class="wsd-n">reedmuller</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">8</span><span class="wsd-line wsd-right"><span class="wsd-kn">from</span><span class="wsd-w"> </span><span class="wsd-nn">reedmuller</span><span class="wsd-w"> </span><span class="wsd-kn">import</span><span class="n"> </span><span class="wsd-n">reedmuller</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">9</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">9</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">10</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">10</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">11</span><span class="wsd-line wsd-left"><span class="wsd-k">class</span><span class="wsd-w"> </span><span class="wsd-nc">Tag</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">11</span><span class="wsd-line wsd-right"><span class="wsd-k">class</span><span class="wsd-w"> </span><span class="wsd-nc">Tag</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">12</span><span class="wsd-line wsd-left"><span class="wsd-w">    </span><span class="wsd-sd">&quot;&quot;&quot; Helper class to ease creation of SVG. All API functions that create SVG allow you to substitute this with your</span></span></span>
+<span class="wsd-lineno wsd-right">12</span><span class="wsd-line wsd-right"><span class="wsd-w">    </span><span class="wsd-sd">&quot;&quot;&quot; Helper class to ease creation of SVG. All API functions that create SVG allow you to substitute this with your</span></span></span>
+<span class="wsd-lineno wsd-left">13</span><span class="wsd-line wsd-left"><span class="wsd-sd">    own implementation by passing a ``tag`` parameter. &quot;&quot;&quot;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">13</span><span class="wsd-line wsd-right"><span class="wsd-sd">    own implementation by passing a ``tag`` parameter. &quot;&quot;&quot;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">14</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">14</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">15</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-fm">__init__</span><span class="wsd-p">(</span><span class="wsd-bp">self</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">children</span><span class="wsd-o">=</span><span class="wsd-kc">None</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">root</span><span class="wsd-o">=</span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-o">*</span><span class="wsd-o">*</span><span class="wsd-n">attrs</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">15</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-fm">__init__</span><span class="wsd-p">(</span><span class="wsd-bp">self</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">children</span><span class="wsd-o">=</span><span class="wsd-kc">None</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">root</span><span class="wsd-o">=</span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-o">*</span><span class="wsd-o">*</span><span class="wsd-n">attrs</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">16</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">fill</span><span class="n"> </span><span class="wsd-o">:=</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">get</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-ow">and</span><span class="n"> </span><span class="wsd-nb">isinstance</span><span class="wsd-p">(</span><span class="wsd-n">fill</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">tuple</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">16</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">fill</span><span class="n"> </span><span class="wsd-o">:=</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">get</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-ow">and</span><span class="n"> </span><span class="wsd-nb">isinstance</span><span class="wsd-p">(</span><span class="wsd-n">fill</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">tuple</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">17</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill-opacity</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">fill</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">17</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">fill-opacity</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">fill</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">18</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">stroke</span><span class="n"> </span><span class="wsd-o">:=</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">get</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-ow">and</span><span class="n"> </span><span class="wsd-nb">isinstance</span><span class="wsd-p">(</span><span class="wsd-n">stroke</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">tuple</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">18</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">stroke</span><span class="n"> </span><span class="wsd-o">:=</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">get</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-ow">and</span><span class="n"> </span><span class="wsd-nb">isinstance</span><span class="wsd-p">(</span><span class="wsd-n">stroke</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">tuple</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">19</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke-opacity</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">stroke</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">19</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-p">[</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">stroke-opacity</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">stroke</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">20</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">attrs</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">20</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">attrs</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">name</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">attrs</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">21</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-ow">or</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">21</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-ow">or</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">22</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">root</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">root</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">22</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">root</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">root</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">23</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">23</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">24</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-fm">__str__</span><span class="wsd-p">(</span><span class="wsd-bp">self</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">24</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-fm">__str__</span><span class="wsd-p">(</span><span class="wsd-bp">self</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">25</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">prefix</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">&lt;?xml version=</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">1.0</span><span class="wsd-s1">&quot;</span><span class="wsd-s1"> encoding=</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">utf-8</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">?&gt;</span><span class="wsd-se">\n</span><span class="wsd-s1">&#x27;</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">root</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">25</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">prefix</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">&lt;?xml version=</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">1.0</span><span class="wsd-s1">&quot;</span><span class="wsd-s1"> encoding=</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">utf-8</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">?&gt;</span><span class="wsd-se">\n</span><span class="wsd-s1">&#x27;</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">root</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">26</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">opening</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-o">.</span><span class="wsd-n">join</span><span class="wsd-p">(</span><span class="wsd-p">[</span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">key</span><span class="wsd-o">.</span><span class="wsd-n">replace</span><span class="wsd-p">(</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">__</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"> </span><span class="wsd-s2">&quot;</span><span class="wsd-s2">:</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-o">.</span><span class="wsd-n">replace</span><span class="wsd-p">(</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">_</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"> </span><span class="wsd-s2">&quot;</span><span class="wsd-s2">-</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-si">}</span><span class="wsd-s1">=</span><span class="wsd-s1">&quot;</span><span class="wsd-si">{</span><span class="wsd-n">value</span><span class="wsd-si">}</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">&#x27;</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">value</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">items</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">26</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">opening</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-o">.</span><span class="wsd-n">join</span><span class="wsd-p">(</span><span class="wsd-p">[</span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-p">]</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">key</span><span class="wsd-o">.</span><span class="wsd-n">replace</span><span class="wsd-p">(</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">__</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"> </span><span class="wsd-s2">&quot;</span><span class="wsd-s2">:</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-o">.</span><span class="wsd-n">replace</span><span class="wsd-p">(</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">_</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"> </span><span class="wsd-s2">&quot;</span><span class="wsd-s2">-</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-si">}</span><span class="wsd-s1">=</span><span class="wsd-s1">&quot;</span><span class="wsd-si">{</span><span class="wsd-n">value</span><span class="wsd-si">}</span><span class="wsd-s1">&quot;</span><span class="wsd-s1">&#x27;</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">value</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">attrs</span><span class="wsd-o">.</span><span class="wsd-n">items</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">27</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">27</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">28</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-se">\n</span><span class="wsd-s1">&#x27;</span><span class="wsd-o">.</span><span class="wsd-n">join</span><span class="wsd-p">(</span><span class="wsd-n">textwrap</span><span class="wsd-o">.</span><span class="wsd-n">indent</span><span class="wsd-p">(</span><span class="wsd-nb">str</span><span class="wsd-p">(</span><span class="wsd-n">c</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">  </span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">c</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">28</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">children</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-se">\n</span><span class="wsd-s1">&#x27;</span><span class="wsd-o">.</span><span class="wsd-n">join</span><span class="wsd-p">(</span><span class="wsd-n">textwrap</span><span class="wsd-o">.</span><span class="wsd-n">indent</span><span class="wsd-p">(</span><span class="wsd-nb">str</span><span class="wsd-p">(</span><span class="wsd-n">c</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">  </span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">c</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">children</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">29</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">prefix</span><span class="wsd-si">}</span><span class="wsd-s1">&lt;</span><span class="wsd-si">{</span><span class="wsd-n">opening</span><span class="wsd-si">}</span><span class="wsd-s1">&gt;</span><span class="wsd-se">\n</span><span class="wsd-si">{</span><span class="wsd-n">children</span><span class="wsd-si">}</span><span class="wsd-se">\n</span><span class="wsd-s1">&lt;/</span><span class="wsd-si">{</span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-si">}</span><span class="wsd-s1">&gt;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">29</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">prefix</span><span class="wsd-si">}</span><span class="wsd-s1">&lt;</span><span class="wsd-si">{</span><span class="wsd-n">opening</span><span class="wsd-si">}</span><span class="wsd-s1">&gt;</span><span class="wsd-se">\n</span><span class="wsd-si">{</span><span class="wsd-n">children</span><span class="wsd-si">}</span><span class="wsd-se">\n</span><span class="wsd-s1">&lt;/</span><span class="wsd-si">{</span><span class="wsd-bp">self</span><span class="wsd-o">.</span><span class="wsd-n">name</span><span class="wsd-si">}</span><span class="wsd-s1">&gt;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+</div>
+<span class="wsd-lineno wsd-left">30</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">else</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">30</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">else</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">31</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">prefix</span><span class="wsd-si">}</span><span class="wsd-s1">&lt;</span><span class="wsd-si">{</span><span class="wsd-n">opening</span><span class="wsd-si">}</span><span class="wsd-s1">/&gt;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">31</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">prefix</span><span class="wsd-si">}</span><span class="wsd-s1">&lt;</span><span class="wsd-si">{</span><span class="wsd-n">opening</span><span class="wsd-si">}</span><span class="wsd-s1">/&gt;</span><span class="wsd-s1">&#x27;</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">32</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">32</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">33</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">33</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">34</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-nd">@classmethod</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">34</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-nd">@classmethod</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-change">35</span><span class="wsd-line wsd-left wsd-change"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-nf">setup_svg</span><span class="wsd-p">(</span><span class="wsd-n">kls</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-p">,</span><span class="wsd-n"></span><span class="n wsd-word-change"> </span><span class="wsd-n wsd-word-change">margin</span><span class="wsd-o wsd-word-change">=</span><span class="wsd-mi wsd-word-change">0</span><span class="wsd-p wsd-word-change">,</span><span class="wsd-n wsd-word-change"></span><span class="n"> </span><span class="wsd-n">unit</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">pagecolor</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">white</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-change">35</span><span class="wsd-line wsd-right wsd-change"><span class="n">    </span><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-nf">setup_svg</span><span class="wsd-p">(</span><span class="wsd-n">kls</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">unit</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">pagecolor</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">white</span><span class="wsd-s1">&#x27;</span><span class="wsd-wsd-p"></span><span class="wsd-p wsd-word-change">,</span><span class="n wsd-word-change"> </span><span class="wsd-n wsd-word-change">inkscape</span><span class="wsd-o wsd-word-change">=</span><span class="wsd-kc wsd-word-change">False</span><span class="wsd-wsd-p wsd-word-change"></span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">36</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-p">(</span><span class="wsd-n">min_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">min_y</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">max_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">max_y</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">36</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-p">(</span><span class="wsd-n">min_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">min_y</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">max_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">max_y</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-insert">37</span><span class="wsd-line wsd-left wsd-insert"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left wsd-insert">38</span><span class="wsd-line wsd-left wsd-insert"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left wsd-insert">39</span><span class="wsd-line wsd-left wsd-insert"><span class="n">            </span><span class="wsd-n">min_x</span><span class="n"> </span><span class="wsd-o">-</span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left wsd-insert">40</span><span class="wsd-line wsd-left wsd-insert"><span class="n">            </span><span class="wsd-n">min_y</span><span class="n"> </span><span class="wsd-o">-</span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left wsd-insert">41</span><span class="wsd-line wsd-left wsd-insert"><span class="n">            </span><span class="wsd-n">max_x</span><span class="n"> </span><span class="wsd-o">+</span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left wsd-insert">42</span><span class="wsd-line wsd-left wsd-insert"><span class="n">            </span><span class="wsd-n">max_y</span><span class="n"> </span><span class="wsd-o">+</span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-empty"></span><span class="wsd-line wsd-right wsd-empty"></span>
+<span class="wsd-lineno wsd-left">43</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">37</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">44</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">h</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">max_x</span><span class="n"> </span><span class="wsd-o">-</span><span class="n"> </span><span class="wsd-n">min_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">max_y</span><span class="n"> </span><span class="wsd-o">-</span><span class="n"> </span><span class="wsd-n">min_y</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">38</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">h</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">max_x</span><span class="n"> </span><span class="wsd-o">-</span><span class="n"> </span><span class="wsd-n">min_x</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">max_y</span><span class="n"> </span><span class="wsd-o">-</span><span class="n"> </span><span class="wsd-n">min_y</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">45</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">w</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mf">1.0</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">math</span><span class="wsd-o">.</span><span class="wsd-n">isclose</span><span class="wsd-p">(</span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mf">0.0</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-n">w</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">39</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">w</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mf">1.0</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">math</span><span class="wsd-o">.</span><span class="wsd-n">isclose</span><span class="wsd-p">(</span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mf">0.0</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-n">w</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">46</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">h</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mf">1.0</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">math</span><span class="wsd-o">.</span><span class="wsd-n">isclose</span><span class="wsd-p">(</span><span class="wsd-n">h</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mf">0.0</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-n">h</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">40</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">h</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mf">1.0</span><span class="n"> </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">math</span><span class="wsd-o">.</span><span class="wsd-n">isclose</span><span class="wsd-p">(</span><span class="wsd-n">h</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mf">0.0</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">else</span><span class="n"> </span><span class="wsd-n">h</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">47</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">41</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">42</span><span class="wsd-line wsd-right wsd-insert"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">inkscape</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">43</span><span class="wsd-line wsd-right wsd-insert"><span class="n">            </span><span class="wsd-n">tags</span><span class="wsd-o">.</span><span class="wsd-n">insert</span><span class="wsd-p">(</span><span class="wsd-mi">0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">kls</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">sodipodi:namedview</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">id</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">namedview1</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">pagecolor</span><span class="wsd-o">=</span><span class="wsd-n">pagecolor</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">44</span><span class="wsd-line wsd-right wsd-insert"><span class="n">                    </span><span class="wsd-n">inkscape__document_units</span><span class="wsd-o">=</span><span class="wsd-n">unit</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-change">48</span><span class="wsd-line wsd-left wsd-change"><span class="n">        </span><span class="wsd-n">namespaces</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">dict</span><span class="wsd-p">(</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-change">45</span><span class="wsd-line wsd-right wsd-change"><span class="wsd-n"></span><span class="wsd-n wsd-word-change">    </span><span class="n">        </span><span class="wsd-n">namespaces</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">dict</span><span class="wsd-p">(</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-change">49</span><span class="wsd-line wsd-left wsd-change"><span class="n">            </span><span class="wsd-n">xmlns</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/2000/svg</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-change">46</span><span class="wsd-line wsd-right wsd-change"><span class="wsd-n"></span><span class="wsd-n wsd-word-change">    </span><span class="n">            </span><span class="wsd-n">xmlns</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/2000/svg</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">47</span><span class="wsd-line wsd-right wsd-insert"><span class="n">                </span><span class="wsd-n">xmlns__xlink</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/1999/xlink</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">48</span><span class="wsd-line wsd-right wsd-insert"><span class="n">                </span><span class="wsd-n">xmlns__sodipodi</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">49</span><span class="wsd-line wsd-right wsd-insert"><span class="n">                </span><span class="wsd-n">xmlns__inkscape</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">http://www.inkscape.org/namespaces/inkscape</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">50</span><span class="wsd-line wsd-right wsd-insert"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">51</span><span class="wsd-line wsd-right wsd-insert"><span class="n">        </span><span class="wsd-k">else</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">52</span><span class="wsd-line wsd-right wsd-insert"><span class="n">            </span><span class="wsd-n">namespaces</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">dict</span><span class="wsd-p">(</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-empty"></span><span class="wsd-line wsd-left wsd-empty"></span>
+<span class="wsd-lineno wsd-right wsd-insert">53</span><span class="wsd-line wsd-right wsd-insert"><span class="n">                </span><span class="wsd-n">xmlns</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/2000/svg</span><span class="wsd-s2">&quot;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left wsd-change">50</span><span class="wsd-line wsd-left wsd-change"><span class="n">            </span><span class="wsd-n">xmlns__xlink</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/1999/xlink</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right wsd-change">54</span><span class="wsd-line wsd-right wsd-change"><span class="wsd-n"></span><span class="wsd-n wsd-word-change">    </span><span class="n">            </span><span class="wsd-n">xmlns__xlink</span><span class="wsd-o">=</span><span class="wsd-s2">&quot;</span><span class="wsd-s2">http://www.w3.org/1999/xlink</span><span class="wsd-s2">&quot;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">51</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">55</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">52</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-n">kls</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">svg</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">56</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">return</span><span class="n"> </span><span class="wsd-n">kls</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">svg</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">53</span><span class="wsd-line wsd-left"><span class="n">                </span><span class="wsd-n">width</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">w</span><span class="wsd-si">}</span><span class="wsd-si">{</span><span class="wsd-n">unit</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">height</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">h</span><span class="wsd-si">}</span><span class="wsd-si">{</span><span class="wsd-n">unit</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">57</span><span class="wsd-line wsd-right"><span class="n">                </span><span class="wsd-n">width</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">w</span><span class="wsd-si">}</span><span class="wsd-si">{</span><span class="wsd-n">unit</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">height</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">h</span><span class="wsd-si">}</span><span class="wsd-si">{</span><span class="wsd-n">unit</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">54</span><span class="wsd-line wsd-left"><span class="n">                </span><span class="wsd-n">viewBox</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">min_x</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">min_y</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">w</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">h</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">58</span><span class="wsd-line wsd-right"><span class="n">                </span><span class="wsd-n">viewBox</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">min_x</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">min_y</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">w</span><span class="wsd-si">}</span><span class="wsd-s1"> </span><span class="wsd-si">{</span><span class="wsd-n">h</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">55</span><span class="wsd-line wsd-left"><span class="n">                </span><span class="wsd-n">style</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">background-color:</span><span class="wsd-si">{</span><span class="wsd-n">pagecolor</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">59</span><span class="wsd-line wsd-right"><span class="n">                </span><span class="wsd-n">style</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">background-color:</span><span class="wsd-si">{</span><span class="wsd-n">pagecolor</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<div class="wsd-collapse"><div class="wsd-collapse-controls"><label><input type="checkbox" checked> Collapse 49 unchanged lines</label></div>
+<span class="wsd-lineno wsd-left">56</span><span class="wsd-line wsd-left"><span class="n">                </span><span class="wsd-o">*</span><span class="wsd-o">*</span><span class="wsd-n">namespaces</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">60</span><span class="wsd-line wsd-right"><span class="n">                </span><span class="wsd-o">*</span><span class="wsd-o">*</span><span class="wsd-n">namespaces</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">57</span><span class="wsd-line wsd-left"><span class="n">                </span><span class="wsd-n">root</span><span class="wsd-o">=</span><span class="wsd-kc">True</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">61</span><span class="wsd-line wsd-right"><span class="n">                </span><span class="wsd-n">root</span><span class="wsd-o">=</span><span class="wsd-kc">True</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">58</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">62</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">59</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">63</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">60</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">command</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">64</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">command</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">61</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-h</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--height</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">20</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Bar height in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">65</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-h</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--height</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">20</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Bar height in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">62</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-t/-n</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--text/--no-text</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Whether to add text containing the data under the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">66</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-t/-n</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--text/--no-text</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Whether to add text containing the data under the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">63</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-f</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--font</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">sans-serif</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Font for the text underneath the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">67</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-f</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--font</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">sans-serif</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Font for the text underneath the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">64</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-s</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--font-size</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">12</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Font size for the text underneath the bar code in points (pt)</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">68</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-s</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--font-size</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">12</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Font size for the text underneath the bar code in points (pt)</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">65</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-b</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--bar-width</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mf">1.0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Bar width in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">69</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-b</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--bar-width</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mf">1.0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Bar width in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">66</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-m</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--margin</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mf">3.0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Margin around bar code in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">70</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-m</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--margin</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mf">3.0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">Margin around bar code in mm</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">67</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-c</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--color</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">black</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">SVG color for the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">71</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-c</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--color</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">black</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">SVG color for the bar code</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">68</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--text-color</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-kc">None</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">SVG color for the text (defaults to the bar code</span><span class="wsd-se">\&#x27;</span><span class="wsd-s1">s color)</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">72</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--text-color</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-kc">None</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">SVG color for the text (defaults to the bar code</span><span class="wsd-se">\&#x27;</span><span class="wsd-s1">s color)</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">69</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--dpi</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">96</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">DPI value to assume for internal SVG unit conversions</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">73</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">option</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">--dpi</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-nb">float</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-mi">96</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">help</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">DPI value to assume for internal SVG unit conversions</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">70</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">argument</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">data</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">74</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">argument</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">data</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">71</span><span class="wsd-line wsd-left"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">argument</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">outfile</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-n">click</span><span class="wsd-o">.</span><span class="wsd-n">File</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">w</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">75</span><span class="wsd-line wsd-right"><span class="wsd-nd">@click</span><span class="wsd-o">.</span><span class="wsd-n">argument</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">outfile</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-nb">type</span><span class="wsd-o">=</span><span class="wsd-n">click</span><span class="wsd-o">.</span><span class="wsd-n">File</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">w</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">default</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">-</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">72</span><span class="wsd-line wsd-left"><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-nf">cli</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">outfile</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">height</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">text</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bar_width</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">text_color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">dpi</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">76</span><span class="wsd-line wsd-right"><span class="wsd-k">def</span><span class="wsd-w"> </span><span class="wsd-nf">cli</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">outfile</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">height</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">text</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bar_width</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">text_color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">dpi</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">73</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">data</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">int</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mi">16</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">77</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">data</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">int</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mi">16</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">74</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">text_color</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">text_color</span><span class="n"> </span><span class="wsd-ow">or</span><span class="n"> </span><span class="wsd-n">color</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">78</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">text_color</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">text_color</span><span class="n"> </span><span class="wsd-ow">or</span><span class="n"> </span><span class="wsd-n">color</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">75</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">79</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">76</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">NUM_BITS</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mi">26</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">80</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">NUM_BITS</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-mi">26</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">77</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">81</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">78</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">data_bits</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-nb">bool</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="n"> </span><span class="wsd-o">&amp;</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-mi">1</span><span class="wsd-o">&lt;&lt;</span><span class="wsd-n">i</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">i</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-nb">range</span><span class="wsd-p">(</span><span class="wsd-n">NUM_BITS</span><span class="wsd-p">)</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">82</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">data_bits</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-nb">bool</span><span class="wsd-p">(</span><span class="wsd-n">data</span><span class="n"> </span><span class="wsd-o">&amp;</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-mi">1</span><span class="wsd-o">&lt;&lt;</span><span class="wsd-n">i</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">i</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-nb">range</span><span class="wsd-p">(</span><span class="wsd-n">NUM_BITS</span><span class="wsd-p">)</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">79</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">data_encoded</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">itertools</span><span class="wsd-o">.</span><span class="wsd-n">chain</span><span class="wsd-p">(</span><span class="wsd-o">*</span><span class="wsd-p">[</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">83</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">data_encoded</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">itertools</span><span class="wsd-o">.</span><span class="wsd-n">chain</span><span class="wsd-p">(</span><span class="wsd-o">*</span><span class="wsd-p">[</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">80</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-p">(</span><span class="wsd-n">a</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-ow">not</span><span class="n"> </span><span class="wsd-n">a</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">a</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-n">data_bits</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">84</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-p">(</span><span class="wsd-n">a</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-ow">not</span><span class="n"> </span><span class="wsd-n">a</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">a</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-n">data_bits</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">81</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">85</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">82</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">data_encoded</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-o">*</span><span class="wsd-n">data_encoded</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">86</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">data_encoded</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-o">*</span><span class="wsd-n">data_encoded</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">False</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-kc">True</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">83</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">87</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">84</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">width</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">len</span><span class="wsd-p">(</span><span class="wsd-n">data_encoded</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-o">*</span><span class="n"> </span><span class="wsd-n">bar_width</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">88</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">width</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">len</span><span class="wsd-p">(</span><span class="wsd-n">data_encoded</span><span class="wsd-p">)</span><span class="n"> </span><span class="wsd-o">*</span><span class="n"> </span><span class="wsd-n">bar_width</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">85</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-c1"># 1 px = 0.75 pt</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">89</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-c1"># 1 px = 0.75 pt</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">86</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">pt_to_mm</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-k">lambda</span><span class="n"> </span><span class="wsd-n">pt</span><span class="wsd-p">:</span><span class="n"> </span><span class="wsd-n">pt</span><span class="n"> </span><span class="wsd-o">/</span><span class="n"> </span><span class="wsd-mf">0.75</span><span class="n"> </span><span class="wsd-o">/</span><span class="wsd-n">dpi</span><span class="n"> </span><span class="wsd-o">*</span><span class="n"> </span><span class="wsd-mf">25.4</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">90</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">pt_to_mm</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-k">lambda</span><span class="n"> </span><span class="wsd-n">pt</span><span class="wsd-p">:</span><span class="n"> </span><span class="wsd-n">pt</span><span class="n"> </span><span class="wsd-o">/</span><span class="n"> </span><span class="wsd-mf">0.75</span><span class="n"> </span><span class="wsd-o">/</span><span class="wsd-n">dpi</span><span class="n"> </span><span class="wsd-o">*</span><span class="n"> </span><span class="wsd-mf">25.4</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">87</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">font_size</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">pt_to_mm</span><span class="wsd-p">(</span><span class="wsd-n">font_size</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">91</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">font_size</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">pt_to_mm</span><span class="wsd-p">(</span><span class="wsd-n">font_size</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">88</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">total_height</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">height</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-o">*</span><span class="wsd-mi">2</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">92</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">total_height</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">height</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-o">*</span><span class="wsd-mi">2</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">89</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">93</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">90</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">tags</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">94</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">tags</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-p">[</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">91</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">group</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-n">itertools</span><span class="wsd-o">.</span><span class="wsd-n">groupby</span><span class="wsd-p">(</span><span class="wsd-nb">enumerate</span><span class="wsd-p">(</span><span class="wsd-n">data_encoded</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-o">=</span><span class="wsd-k">lambda</span><span class="n"> </span><span class="wsd-n">x</span><span class="wsd-p">:</span><span class="n"> </span><span class="wsd-n">x</span><span class="wsd-p">[</span><span class="wsd-mi">1</span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">95</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-k">for</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">group</span><span class="n"> </span><span class="wsd-ow">in</span><span class="n"> </span><span class="wsd-n">itertools</span><span class="wsd-o">.</span><span class="wsd-n">groupby</span><span class="wsd-p">(</span><span class="wsd-nb">enumerate</span><span class="wsd-p">(</span><span class="wsd-n">data_encoded</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-o">=</span><span class="wsd-k">lambda</span><span class="n"> </span><span class="wsd-n">x</span><span class="wsd-p">:</span><span class="n"> </span><span class="wsd-n">x</span><span class="wsd-p">[</span><span class="wsd-mi">1</span><span class="wsd-p">]</span><span class="wsd-p">)</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">92</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">96</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">key</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">93</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">group</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">list</span><span class="wsd-p">(</span><span class="wsd-n">group</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">97</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">group</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">list</span><span class="wsd-p">(</span><span class="wsd-n">group</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">94</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">x0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">_key</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">group</span><span class="wsd-p">[</span><span class="wsd-mi">0</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">98</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">x0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">_key</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-n">group</span><span class="wsd-p">[</span><span class="wsd-mi">0</span><span class="wsd-p">]</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">95</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">w</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">len</span><span class="wsd-p">(</span><span class="wsd-n">group</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">99</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">w</span><span class="n"> </span><span class="wsd-o">=</span><span class="n"> </span><span class="wsd-nb">len</span><span class="wsd-p">(</span><span class="wsd-n">group</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">96</span><span class="wsd-line wsd-left"><span class="n">            </span><span class="wsd-n">tags</span><span class="wsd-o">.</span><span class="wsd-n">append</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">path</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">stroke</span><span class="wsd-o">=</span><span class="wsd-n">color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">stroke_width</span><span class="wsd-o">=</span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">d</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">M </span><span class="wsd-si">{</span><span class="wsd-p">(</span><span class="wsd-n">x0</span><span class="wsd-w"> </span><span class="wsd-o">+</span><span class="wsd-w"> </span><span class="wsd-n">w</span><span class="wsd-o">/</span><span class="wsd-mi">2</span><span class="wsd-p">)</span><span class="wsd-o">*</span><span class="wsd-n">bar_width</span><span class="wsd-si">}</span><span class="wsd-s1"> 0 l 0 </span><span class="wsd-si">{</span><span class="wsd-n">height</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">100</span><span class="wsd-line wsd-right"><span class="n">            </span><span class="wsd-n">tags</span><span class="wsd-o">.</span><span class="wsd-n">append</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">path</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">stroke</span><span class="wsd-o">=</span><span class="wsd-n">color</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">stroke_width</span><span class="wsd-o">=</span><span class="wsd-n">w</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">d</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">M </span><span class="wsd-si">{</span><span class="wsd-p">(</span><span class="wsd-n">x0</span><span class="wsd-w"> </span><span class="wsd-o">+</span><span class="wsd-w"> </span><span class="wsd-n">w</span><span class="wsd-o">/</span><span class="wsd-mi">2</span><span class="wsd-p">)</span><span class="wsd-o">*</span><span class="wsd-n">bar_width</span><span class="wsd-si">}</span><span class="wsd-s1"> 0 l 0 </span><span class="wsd-si">{</span><span class="wsd-n">height</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">97</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">101</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">98</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">text</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">102</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-n">text</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">99</span><span class="wsd-line wsd-left"><span class="n">        </span><span class="wsd-n">tags</span><span class="wsd-o">.</span><span class="wsd-n">append</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">text</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">children</span><span class="wsd-o">=</span><span class="wsd-p">[</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">data</span><span class="wsd-si">:</span><span class="wsd-s1">07x</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">103</span><span class="wsd-line wsd-right"><span class="n">        </span><span class="wsd-n">tags</span><span class="wsd-o">.</span><span class="wsd-n">append</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-p">(</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">text</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">children</span><span class="wsd-o">=</span><span class="wsd-p">[</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">data</span><span class="wsd-si">:</span><span class="wsd-s1">07x</span><span class="wsd-si">}</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">]</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">100</span><span class="wsd-line wsd-left"><span class="n">                        </span><span class="wsd-n">x</span><span class="wsd-o">=</span><span class="wsd-n">width</span><span class="wsd-o">/</span><span class="wsd-mi">2</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">y</span><span class="wsd-o">=</span><span class="wsd-n">height</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-mf">0.5</span><span class="wsd-o">*</span><span class="wsd-n">font_size</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">104</span><span class="wsd-line wsd-right"><span class="n">                        </span><span class="wsd-n">x</span><span class="wsd-o">=</span><span class="wsd-n">width</span><span class="wsd-o">/</span><span class="wsd-mi">2</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">y</span><span class="wsd-o">=</span><span class="wsd-n">height</span><span class="n"> </span><span class="wsd-o">+</span><span class="n"> </span><span class="wsd-mf">0.5</span><span class="wsd-o">*</span><span class="wsd-n">font_size</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">101</span><span class="wsd-line wsd-left"><span class="n">                        </span><span class="wsd-n">font_family</span><span class="wsd-o">=</span><span class="wsd-n">font</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">font_size</span><span class="wsd-si">:</span><span class="wsd-s1">.3f</span><span class="wsd-si">}</span><span class="wsd-s1">px</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">105</span><span class="wsd-line wsd-right"><span class="n">                        </span><span class="wsd-n">font_family</span><span class="wsd-o">=</span><span class="wsd-n">font</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">font_size</span><span class="wsd-o">=</span><span class="wsd-sa">f</span><span class="wsd-s1">&#x27;</span><span class="wsd-si">{</span><span class="wsd-n">font_size</span><span class="wsd-si">:</span><span class="wsd-s1">.3f</span><span class="wsd-si">}</span><span class="wsd-s1">px</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">102</span><span class="wsd-line wsd-left"><span class="n">                        </span><span class="wsd-n">text_anchor</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">middle</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">dominant_baseline</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">hanging</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">106</span><span class="wsd-line wsd-right"><span class="n">                        </span><span class="wsd-n">text_anchor</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">middle</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">dominant_baseline</span><span class="wsd-o">=</span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">hanging</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">,</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">103</span><span class="wsd-line wsd-left"><span class="n">                        </span><span class="wsd-n">fill</span><span class="wsd-o">=</span><span class="wsd-n">text_color</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">107</span><span class="wsd-line wsd-right"><span class="n">                        </span><span class="wsd-n">fill</span><span class="wsd-o">=</span><span class="wsd-n">text_color</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">104</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">108</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+</div>
+<span class="wsd-lineno wsd-left">105</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">outfile</span><span class="wsd-o">.</span><span class="wsd-n">write</span><span class="wsd-p">(</span><span class="wsd-nb">str</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-o">.</span><span class="wsd-n">setup_svg</span><span class="wsd-p">(</span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-o">=</span><span class="wsd-p">(</span><span class="wsd-p">(</span><span class="wsd-mi">0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mi">0</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">width</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">total_height</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-o">=</span><span class="wsd-n">margin</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">109</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">outfile</span><span class="wsd-o">.</span><span class="wsd-n">write</span><span class="wsd-p">(</span><span class="wsd-nb">str</span><span class="wsd-p">(</span><span class="wsd-n">Tag</span><span class="wsd-o">.</span><span class="wsd-n">setup_svg</span><span class="wsd-p">(</span><span class="wsd-n">tags</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">bounds</span><span class="wsd-o">=</span><span class="wsd-p">(</span><span class="wsd-p">(</span><span class="wsd-mi">0</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-mi">0</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-p">(</span><span class="wsd-n">width</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">total_height</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-p">,</span><span class="n"> </span><span class="wsd-n">margin</span><span class="wsd-o">=</span><span class="wsd-n">margin</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">106</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">110</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">107</span><span class="wsd-line wsd-left"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">111</span><span class="wsd-line wsd-right"><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">108</span><span class="wsd-line wsd-left"><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-vm">__name__</span><span class="n"> </span><span class="wsd-o">==</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">__main__</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">112</span><span class="wsd-line wsd-right"><span class="wsd-k">if</span><span class="n"> </span><span class="wsd-vm">__name__</span><span class="n"> </span><span class="wsd-o">==</span><span class="n"> </span><span class="wsd-s1">&#x27;</span><span class="wsd-s1">__main__</span><span class="wsd-s1">&#x27;</span><span class="wsd-p">:</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-left">109</span><span class="wsd-line wsd-left"><span class="n">    </span><span class="wsd-n">cli</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+<span class="wsd-lineno wsd-right">113</span><span class="wsd-line wsd-right"><span class="n">    </span><span class="wsd-n">cli</span><span class="wsd-p">(</span><span class="wsd-p">)</span><span class="wsd-w"></span></span></span>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+
